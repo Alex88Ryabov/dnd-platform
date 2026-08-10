@@ -79,6 +79,9 @@ export function HomeView() {
               <button className="btn btn-ghost btn-lg" onClick={() => setView('dice')}>
                 🎲 Кубики
               </button>
+              <button className="btn btn-ghost btn-lg" onClick={() => setView('library')}>
+                🎓 Как играть?
+              </button>
             </div>
           </div>
           <div style={{ margin: '-20px -10px -30px auto' }}>

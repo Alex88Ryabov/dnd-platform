@@ -6,21 +6,24 @@ import { CLASSES } from '../../data/classes';
 import { SPECIES } from '../../data/species';
 import { CONDITIONS, MASTERY_INFO, RARITY_INFO, SCHOOL_ICONS, SCHOOL_NAMES, SIZE_NAMES } from '../../data/core';
 import type { ConditionId, WeaponMastery } from '../../model/types';
+import { GuideTab } from './GuideTab';
 
-type LibraryTab = 'races' | 'spells' | 'items' | 'rules';
+type LibraryTab = 'guide' | 'races' | 'spells' | 'items' | 'rules';
 
 export function LibraryView() {
-  const [tab, setTab] = useState<LibraryTab>('races');
+  const [tab, setTab] = useState<LibraryTab>('guide');
 
   return (
     <div className="col" style={{ gap: 16 }}>
       <h1 style={{ fontSize: 34 }}>Справочник</h1>
       <div className="tab-row">
+        <button className={`tab-btn${tab === 'guide' ? ' active' : ''}`} onClick={() => setTab('guide')}>🎓 Как играть</button>
         <button className={`tab-btn${tab === 'races' ? ' active' : ''}`} onClick={() => setTab('races')}>🧝 Расы</button>
         <button className={`tab-btn${tab === 'spells' ? ' active' : ''}`} onClick={() => setTab('spells')}>✨ Заклинания</button>
         <button className={`tab-btn${tab === 'items' ? ' active' : ''}`} onClick={() => setTab('items')}>🎒 Предметы</button>
         <button className={`tab-btn${tab === 'rules' ? ' active' : ''}`} onClick={() => setTab('rules')}>📖 Шпаргалка</button>
       </div>
+      {tab === 'guide' && <GuideTab />}
       {tab === 'races' && <RacesTab />}
       {tab === 'spells' && <SpellsTab />}
       {tab === 'items' && <ItemsTab />}
