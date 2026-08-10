@@ -8,6 +8,7 @@ import { derive } from '../../engine/derive';
 import { toast } from '../../components/Toasts';
 import { sfx } from '../../audio/sound';
 import { HpBadge } from '../characters/HpBadge';
+import { PortraitBadge } from '../../components/PortraitBadge';
 
 export function HomeView() {
   const characters = useStore((s) => s.characters);
@@ -130,22 +131,7 @@ export function HomeView() {
                   }}
                 >
                   <div className="row" style={{ gap: 12 }}>
-                    <div
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 14,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 30,
-                        background: `linear-gradient(150deg, hsl(${char.portrait.hue} 45% 30%), hsl(${char.portrait.hue} 55% 16%))`,
-                        border: '1px solid var(--border-soft)',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {char.portrait.icon}
-                    </div>
+                    <PortraitBadge portrait={char.portrait} size={52} radius={14} />
                     <div className="grow">
                       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, color: 'var(--parchment)' }}>
                         {char.name}

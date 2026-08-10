@@ -3,7 +3,7 @@ import type { JournalEntry, NpcNote, Quest } from '../../model/types';
 import { useStore } from '../../store/store';
 import { toast } from '../../components/Toasts';
 
-type JournalTab = 'entries' | 'quests' | 'npcs' | 'places';
+type JournalTab = 'entries' | 'quests' | 'npcs' | 'places' | 'reviews';
 
 const ENTRY_KINDS: { id: JournalEntry['kind']; label: string; icon: string }[] = [
   { id: 'session', label: 'Игровая встреча', icon: '📖' },
@@ -25,6 +25,7 @@ export function JournalView() {
     { id: 'quests', label: '🗺️ Задания' },
     { id: 'npcs', label: '🧙 Персонажи мира' },
     { id: 'places', label: '🏰 Места' },
+    { id: 'reviews', label: '⭐ Отзывы игроков' },
   ];
 
   return (
@@ -41,6 +42,129 @@ export function JournalView() {
       {tab === 'quests' && <QuestsTab />}
       {tab === 'npcs' && <NpcsTab />}
       {tab === 'places' && <PlacesTab />}
+      {tab === 'reviews' && <ReviewsTab />}
+    </div>
+  );
+}
+
+function Stars({ value, onChange, size = 26 }: { value: number; onChange?: (v: number) => void; size?: number }) {
+  return (
+    <div className="row" style={{ gap: 2 }}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          style={{
+            fontSize: size,
+            cursor: onChange ? 'pointer' : 'default',
+            filter: n <= value ? 'none' : 'grayscale(1) opacity(0.35)',
+            transition: 'transform .12s',
+          }}
+          disabled={!onChange}
+          onClick={() => onChange?.(n)}
+          onMouseEnter={(e) => {
+            if (onChange) {
+              (e.target as HTMLElement).style.transform = 'scale(1.25)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            (e.target as HTMLElement).style.transform = 'none';
+          }}
+        >
+          ⭐
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ReviewsTab() {
+  const reviews = useStore((s) => s.reviews);
+  const addReview = useStore((s) => s.addReview);
+  const deleteReview = useStore((s) => s.deleteReview);
+  const characters = useStore((s) => s.characters);
+
+  const [author, setAuthor] = useState('');
+  const [rating, setRating] = useState(5);
+  const [text, setText] = useState('');
+
+  const average = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
+
+  const playerNames = [...new Set(characters.map((c) => c.playerName).filter(Boolean))];
+
+  return (
+    <div className="col" style={{ gap: 16 }}>
+      <section className="panel panel-ornate">
+        <div className="section-title">Как прошла игра?</div>
+        <div className="col" style={{ gap: 10 }}>
+          <div className="row-wrap" style={{ gap: 8 }}>
+            <input
+              placeholder="Кто оставляет отзыв (имя игрока)"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              style={{ width: 240 }}
+              list="review-authors"
+            />
+            <datalist id="review-authors">
+              {playerNames.map((p) => (
+                <option key={p} value={p} />
+              ))}
+            </datalist>
+            <Stars value={rating} onChange={setRating} />
+          </div>
+          <textarea
+            rows={2}
+            placeholder="Что понравилось больше всего? Что было самым смешным или страшным?"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div>
+            <button
+              className="btn btn-primary"
+              disabled={!author.trim() && !text.trim()}
+              onClick={() => {
+                addReview({ author: author.trim() || 'Игрок', rating, text: text.trim() });
+                setText('');
+                toast('Отзыв записан!', 'Спасибо за впечатления', '⭐');
+              }}
+            >
+              ⭐ Оставить отзыв
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {average && (
+        <div className="row" style={{ gap: 10 }}>
+          <span className="chip chip-active" style={{ fontSize: 15 }}>
+            Средняя оценка кампании: {average} ⭐ · отзывов: {reviews.length}
+          </span>
+        </div>
+      )}
+
+      {reviews.length === 0 ? (
+        <div className="empty-state panel">
+          <span className="big-icon">⭐</span>
+          После игры каждый может оставить отзыв — а через год будет интересно перечитать!
+        </div>
+      ) : (
+        <div className="col" style={{ gap: 10 }}>
+          {reviews.map((review) => (
+            <section key={review.id} className="panel">
+              <div className="row spread">
+                <div className="row" style={{ gap: 10 }}>
+                  <b className="script gold" style={{ fontSize: 19 }}>{review.author}</b>
+                  <Stars value={review.rating} size={16} />
+                  <span className="small faint">{new Date(review.ts).toLocaleDateString('ru')}</span>
+                </div>
+                <button className="icon-btn" onClick={() => deleteReview(review.id)}>🗑️</button>
+              </div>
+              {review.text && <div className="muted" style={{ marginTop: 6 }}>{review.text}</div>}
+            </section>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

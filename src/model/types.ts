@@ -321,6 +321,8 @@ export interface DeathSaves {
 export interface Portrait {
   icon: string;
   hue: number;
+  // своя картинка (data-URL, сжатая до ~192px) — если задана, показывается вместо иконки
+  image?: string;
 }
 
 export interface Character {
@@ -400,6 +402,15 @@ export interface PlaceNote {
   id: string;
   name: string;
   description: string;
+}
+
+// отзыв игрока о прошедшей игре
+export interface PlayerReview {
+  id: string;
+  ts: string;
+  author: string;
+  rating: number;
+  text: string;
 }
 
 // ---------- Бой ----------

@@ -7,6 +7,7 @@ import { derive } from '../../engine/derive';
 import { ClassEmblem } from '../../svg/icons';
 import { toast } from '../../components/Toasts';
 import { HpBadge } from './HpBadge';
+import { PortraitBadge } from '../../components/PortraitBadge';
 import { CharacterSheet } from './CharacterSheet';
 import { CreationWizard } from './CreationWizard';
 import { Confetti } from '../../components/Confetti';
@@ -78,22 +79,7 @@ export function CharactersView() {
               onClick={() => selectCharacter(char.id)}
             >
               <div className="row" style={{ gap: 12 }}>
-                <div
-                  style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: 15,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 33,
-                    background: `linear-gradient(150deg, hsl(${char.portrait.hue} 45% 30%), hsl(${char.portrait.hue} 55% 16%))`,
-                    border: '1px solid var(--border-soft)',
-                    flexShrink: 0,
-                  }}
-                >
-                  {char.portrait.icon}
-                </div>
+                <PortraitBadge portrait={char.portrait} size={58} radius={15} />
                 <div className="grow">
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 19, color: 'var(--parchment)' }}>
                     {char.name}

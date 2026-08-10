@@ -11,7 +11,9 @@ import { SCHOOL_ICONS } from '../../data/core';
 import { STANDARD_ARRAY, rollAbilityScore } from '../../engine/dice';
 import { abilityMod } from '../../engine/derive';
 import { formatModifier } from '../../engine/dice';
-import { buildNewCharacter } from '../../engine/creation';
+import { buildNewCharacter, maxSpellCircle } from '../../engine/creation';
+import { PortraitBadge } from '../../components/PortraitBadge';
+import { fileToPortraitImage } from '../../components/portraitUtil';
 import { useStore } from '../../store/store';
 import { ClassEmblem } from '../../svg/icons';
 import { Modal } from '../../components/Modal';
@@ -35,6 +37,8 @@ export function CreationWizard({ onClose }: Props) {
   const [playerName, setPlayerName] = useState('');
   const [icon, setIcon] = useState('🦁');
   const [hue, setHue] = useState(35);
+  const [image, setImage] = useState<string | undefined>(undefined);
+  const [startLevel, setStartLevel] = useState(1);
   const [classId, setClassId] = useState<ClassId | null>(null);
   const [speciesId, setSpeciesId] = useState<SpeciesId | null>(null);
   const [speciesSearch, setSpeciesSearch] = useState('');
@@ -44,6 +48,12 @@ export function CreationWizard({ onClose }: Props) {
   const [bonusTwo, setBonusTwo] = useState<Ability | null>(null);
   const [bonusOne, setBonusOne] = useState<Ability | null>(null);
   const [extraFeatId, setExtraFeatId] = useState<string>('skilled');
+  const [customBgName, setCustomBgName] = useState('');
+  const [customBgSkills, setCustomBgSkills] = useState<SkillId[]>([]);
+  const [customBgFeatId, setCustomBgFeatId] = useState('skilled');
+  const [customBgTool, setCustomBgTool] = useState('');
+  const [abilityMode, setAbilityMode] = useState<'pool' | 'manual'>('pool');
+  const [subclassSel, setSubclassSel] = useState<string>('');
   const [pool, setPool] = useState<number[]>(STANDARD_ARRAY);
   const [rolledInfo, setRolledInfo] = useState<string | null>(null);
   const [assigned, setAssigned] = useState<Record<Ability, number | null>>({
@@ -59,14 +69,22 @@ export function CreationWizard({ onClose }: Props) {
 
   const classDef = classId ? CLASSES_BY_ID[classId] : null;
   const background = backgroundId ? BACKGROUNDS_BY_ID[backgroundId] : null;
-  const isCaster = Boolean(classDef?.caster && (classDef.caster.cantripsByLevel[1] > 0 || classDef.caster.preparedByLevel[1] > 0));
+  const isCustomBg = backgroundId === 'custom';
+  const isCaster = Boolean(classDef?.caster
+    && ((classDef.caster.cantripsByLevel[startLevel] ?? 0) > 0 || (classDef.caster.preparedByLevel[startLevel] ?? 0) > 0));
+  const needsStyle = classId === 'fighter'
+    || ((classId === 'paladin' || classId === 'ranger') && startLevel >= 2);
+  const needsSubclass = Boolean(classDef && startLevel >= classDef.subclassLevel);
+  // для своей предыстории бонусы можно класть в любые характеристики
+  const bonusSource: Ability[] = background ? background.abilities : ABILITIES;
+  const bgSkills: SkillId[] = background ? background.skills : (isCustomBg ? customBgSkills : []);
 
   const bonuses = useMemo(() => {
     const map: Record<Ability, number> = { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
-    if (!background) {
+    if (!backgroundId) {
       return map;
     }
-    if (bonusMode === 'all-one') {
+    if (bonusMode === 'all-one' && background) {
       background.abilities.forEach((a) => {
         map[a] += 1;
       });
@@ -79,7 +97,7 @@ export function CreationWizard({ onClose }: Props) {
       }
     }
     return map;
-  }, [background, bonusMode, bonusTwo, bonusOne]);
+  }, [backgroundId, background, bonusMode, bonusTwo, bonusOne]);
 
   const finalAbilities = useMemo(() => {
     const result: Record<Ability, number> = { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 };
@@ -97,14 +115,18 @@ export function CreationWizard({ onClose }: Props) {
         return classId !== null;
       case 2:
         return speciesId !== null;
-      case 3:
+      case 3: {
         if (!backgroundId) {
           return false;
         }
-        if (bonusMode === 'two-one') {
+        if (isCustomBg && (customBgName.trim() === '' || customBgSkills.length !== 2)) {
+          return false;
+        }
+        if (bonusMode === 'two-one' || isCustomBg) {
           return Boolean(bonusTwo && bonusOne && bonusTwo !== bonusOne);
         }
         return true;
+      }
       case 4:
         return ABILITIES.every((a) => assigned[a] !== null);
       case 5: {
@@ -113,16 +135,18 @@ export function CreationWizard({ onClose }: Props) {
         }
         const okSkills = skills.length === classDef.skillChoices.count;
         const okExpertise = classId !== 'rogue' || expertise.length === 2;
-        const okStyle = classId !== 'fighter' || fightingStyleId !== '';
+        const okStyle = !needsStyle || fightingStyleId !== '';
         return okSkills && okExpertise && okStyle;
       }
       case 6: {
         if (!isCaster || !classDef?.caster) {
           return true;
         }
-        return cantrips.length === classDef.caster.cantripsByLevel[1]
-          && prepared.length === classDef.caster.preparedByLevel[1];
+        return cantrips.length === (classDef.caster.cantripsByLevel[startLevel] ?? 0)
+          && prepared.length === (classDef.caster.preparedByLevel[startLevel] ?? 0);
       }
+      case 7:
+        return !needsSubclass || subclassSel !== '';
       default:
         return true;
     }
@@ -143,12 +167,15 @@ export function CreationWizard({ onClose }: Props) {
     const char = buildNewCharacter({
       name,
       playerName,
-      portrait: { icon, hue },
+      portrait: { icon, hue, image },
       classId,
       speciesId,
       backgroundId,
+      customBackground: isCustomBg ? customBgName.trim() : undefined,
+      backgroundFeatId: isCustomBg ? customBgFeatId : undefined,
+      customBackgroundTool: isCustomBg ? (customBgTool.trim() || undefined) : undefined,
       abilities: finalAbilities,
-      skills,
+      skills: isCustomBg ? [...skills, ...customBgSkills] : skills,
       expertise: classId === 'rogue' ? expertise : undefined,
       fightingStyleId: fightingStyleId || undefined,
       extraFeatId: speciesId === 'human' ? extraFeatId : undefined,
@@ -156,6 +183,8 @@ export function CreationWizard({ onClose }: Props) {
       prepared,
       alignment,
       backstory,
+      level: startLevel,
+      subclassId: needsSubclass ? subclassSel : undefined,
     });
     addCharacter(char);
     fireConfetti();
@@ -166,13 +195,17 @@ export function CreationWizard({ onClose }: Props) {
 
   const spellChoices = useMemo(() => {
     if (!classId) {
-      return { cantripList: [], firstLevelList: [] };
+      return { cantripList: [], leveledList: [], maxCircle: 0 };
     }
+    const maxCircle = Math.max(1, maxSpellCircle(classId, startLevel));
     return {
       cantripList: SPELLS.filter((s) => s.level === 0 && s.classes.includes(classId)),
-      firstLevelList: SPELLS.filter((s) => s.level === 1 && s.classes.includes(classId)),
+      leveledList: SPELLS
+        .filter((s) => s.level > 0 && s.level <= maxCircle && s.classes.includes(classId))
+        .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, 'ru')),
+      maxCircle,
     };
-  }, [classId]);
+  }, [classId, startLevel]);
 
   // шаг «Заклинания» пропускаем для немагических классов
   const visibleSteps = isCaster ? STEPS : STEPS.filter((s) => s !== 'Заклинания');
@@ -271,23 +304,49 @@ export function CreationWizard({ onClose }: Props) {
               }}
             />
           </label>
+          <div className="row-wrap" style={{ gap: 10 }}>
+            <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
+              📷 Загрузить свою картинку
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    try {
+                      setImage(await fileToPortraitImage(file));
+                    } catch {
+                      toast('Не получилось', 'Не удалось прочитать картинку', '⚠️');
+                    }
+                  }
+                  e.target.value = '';
+                }}
+              />
+            </label>
+            {image && (
+              <button className="btn btn-ghost btn-sm" onClick={() => setImage(undefined)}>
+                ✕ Убрать картинку
+              </button>
+            )}
+          </div>
           <div className="row" style={{ gap: 12 }}>
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 16,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 36,
-                background: `linear-gradient(150deg, hsl(${hue} 45% 30%), hsl(${hue} 55% 16%))`,
-                border: '1px solid var(--border-strong)',
-              }}
-            >
-              {icon}
-            </div>
+            <PortraitBadge portrait={{ icon, hue, image }} size={64} radius={16} />
             <div className="script gold" style={{ fontSize: 26 }}>{name || 'Будущая легенда'}</div>
+          </div>
+          <div className="panel" style={{ padding: 14, maxWidth: 480 }}>
+            <div className="row-wrap" style={{ gap: 10, alignItems: 'center' }}>
+              <span className="muted small">Стартовый уровень:</span>
+              <select value={startLevel} onChange={(e) => setStartLevel(Number(e.target.value))}>
+                {Array.from({ length: 20 }, (_, i) => i + 1).map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+            <div className="small faint" style={{ marginTop: 6 }}>
+              1 — для нового героя. Выше — чтобы перенести уже существующего персонажа:
+              платформа даст нужные хиты, заклинания и выбор подкласса.
+            </div>
           </div>
         </div>
       )}
@@ -454,36 +513,114 @@ export function CreationWizard({ onClose }: Props) {
                 </div>
               </div>
             ))}
+            <div
+              className="panel card-clickable"
+              style={{
+                outline: isCustomBg ? '2px solid var(--gold)' : 'none',
+                padding: 14,
+                borderStyle: 'dashed',
+              }}
+              onClick={() => {
+                setBackgroundId('custom');
+                setBonusMode('two-one');
+                setBonusTwo(null);
+                setBonusOne(null);
+              }}
+            >
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: 'var(--gold-bright)' }}>
+                ✍️ Своя предыстория
+              </div>
+              <div className="small muted" style={{ margin: '5px 0' }}>
+                Придумайте собственную: любое название, любые два навыка, черта на выбор
+                и бонусы +2/+1 к любым характеристикам.
+              </div>
+            </div>
           </div>
 
-          {background && (
+          {isCustomBg && (
+            <div className="panel" style={{ padding: 14 }}>
+              <div className="section-title">Ваша предыстория</div>
+              <div className="col" style={{ gap: 10 }}>
+                <input
+                  placeholder="Название (например: Юный драконоборец, Ученица ведьмы...)"
+                  value={customBgName}
+                  onChange={(e) => setCustomBgName(e.target.value)}
+                  style={{ maxWidth: 420 }}
+                />
+                <div>
+                  <div className="muted small" style={{ marginBottom: 6 }}>
+                    Два навыка предыстории (выбрано {customBgSkills.length} из 2):
+                  </div>
+                  <div className="row-wrap" style={{ gap: 6 }}>
+                    {SKILLS.map((skill) => {
+                      const active = customBgSkills.includes(skill.id);
+                      return (
+                        <button
+                          key={skill.id}
+                          className={`chip chip-clickable${active ? ' chip-active' : ''}`}
+                          onClick={() => {
+                            if (active) {
+                              setCustomBgSkills(customBgSkills.filter((s) => s !== skill.id));
+                            } else if (customBgSkills.length < 2) {
+                              setCustomBgSkills([...customBgSkills, skill.id]);
+                            }
+                          }}
+                        >
+                          {skill.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="row-wrap" style={{ gap: 10 }}>
+                  <span className="muted small">Черта происхождения:</span>
+                  <select value={customBgFeatId} onChange={(e) => setCustomBgFeatId(e.target.value)}>
+                    {ORIGIN_FEATS.map((f) => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="small muted">{FEATS_BY_ID[customBgFeatId]?.description}</div>
+                <input
+                  placeholder="Инструмент (необязательно, например: Столярные инструменты)"
+                  value={customBgTool}
+                  onChange={(e) => setCustomBgTool(e.target.value)}
+                  style={{ maxWidth: 420 }}
+                />
+              </div>
+            </div>
+          )}
+
+          {(background || isCustomBg) && (
             <div className="panel" style={{ padding: 14 }}>
               <div className="section-title">Бонусы характеристик предыстории</div>
               <div className="row-wrap" style={{ gap: 14 }}>
                 <label className="row" style={{ gap: 6 }}>
                   <input
                     type="radio"
-                    checked={bonusMode === 'two-one'}
+                    checked={bonusMode === 'two-one' || isCustomBg}
                     onChange={() => setBonusMode('two-one')}
                   />
                   +2 и +1
                 </label>
-                <label className="row" style={{ gap: 6 }}>
-                  <input
-                    type="radio"
-                    checked={bonusMode === 'all-one'}
-                    onChange={() => setBonusMode('all-one')}
-                  />
-                  +1 ко всем трём
-                </label>
+                {!isCustomBg && (
+                  <label className="row" style={{ gap: 6 }}>
+                    <input
+                      type="radio"
+                      checked={bonusMode === 'all-one'}
+                      onChange={() => setBonusMode('all-one')}
+                    />
+                    +1 ко всем трём
+                  </label>
+                )}
               </div>
-              {bonusMode === 'two-one' && (
+              {(bonusMode === 'two-one' || isCustomBg) && (
                 <div className="row-wrap" style={{ marginTop: 10, gap: 12 }}>
                   <label className="row" style={{ gap: 8 }}>
                     <span className="muted small">+2 к</span>
                     <select value={bonusTwo ?? ''} onChange={(e) => setBonusTwo((e.target.value || null) as Ability | null)}>
                       <option value="">—</option>
-                      {background.abilities.map((a) => (
+                      {bonusSource.map((a) => (
                         <option key={a} value={a}>{ABILITY_NAMES[a]}</option>
                       ))}
                     </select>
@@ -492,7 +629,7 @@ export function CreationWizard({ onClose }: Props) {
                     <span className="muted small">+1 к</span>
                     <select value={bonusOne ?? ''} onChange={(e) => setBonusOne((e.target.value || null) as Ability | null)}>
                       <option value="">—</option>
-                      {background.abilities.filter((a) => a !== bonusTwo).map((a) => (
+                      {bonusSource.filter((a) => a !== bonusTwo).map((a) => (
                         <option key={a} value={a}>{ABILITY_NAMES[a]}</option>
                       ))}
                     </select>
@@ -522,12 +659,15 @@ export function CreationWizard({ onClose }: Props) {
         <div className="col" style={{ gap: 14 }}>
           <div className="row-wrap spread">
             <div className="muted small">
-              Раздайте значения из набора по характеристикам. Бонусы предыстории добавятся сверху.
+              {abilityMode === 'manual'
+                ? 'Впишите значения характеристик как есть (например, у переносимого героя). Бонусы предыстории добавятся сверху.'
+                : 'Раздайте значения из набора по характеристикам. Бонусы предыстории добавятся сверху.'}
             </div>
-            <div className="row" style={{ gap: 8 }}>
+            <div className="row-wrap" style={{ gap: 8 }}>
               <button
                 className="btn btn-ghost btn-sm"
                 onClick={() => {
+                  setAbilityMode('pool');
                   setPool(STANDARD_ARRAY);
                   setRolledInfo(null);
                   setAssigned({ str: null, dex: null, con: null, int: null, wis: null, cha: null });
@@ -535,25 +675,50 @@ export function CreationWizard({ onClose }: Props) {
               >
                 Стандартный набор
               </button>
-              <button className="btn btn-primary btn-sm" onClick={rollPool}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => {
+                  setAbilityMode('pool');
+                  rollPool();
+                }}
+              >
                 🎲 Бросить 4d6
+              </button>
+              <button
+                className={`btn btn-sm ${abilityMode === 'manual' ? 'btn-primary' : 'btn-ghost'}`}
+                title="Ввести любые числа — удобно для переноса готового героя"
+                onClick={() => {
+                  setAbilityMode('manual');
+                  setAssigned({
+                    str: assigned.str ?? 10,
+                    dex: assigned.dex ?? 10,
+                    con: assigned.con ?? 10,
+                    int: assigned.int ?? 10,
+                    wis: assigned.wis ?? 10,
+                    cha: assigned.cha ?? 10,
+                  });
+                }}
+              >
+                ✏️ Вручную
               </button>
             </div>
           </div>
-          <div className="row-wrap" style={{ gap: 8 }}>
-            <span className="muted small">Набор:</span>
-            {pool.map((v, i) => {
-              const usedCount = ABILITIES.filter((a) => assigned[a] === v).length;
-              const poolCount = pool.filter((x) => x === v).length;
-              const exhausted = usedCount >= poolCount && pool.indexOf(v) === i;
-              return (
-                <span key={i} className="chip" style={{ opacity: exhausted ? 0.4 : 1, fontSize: 15 }}>
-                  {v}
-                </span>
-              );
-            })}
-          </div>
-          {rolledInfo && <div className="small faint">Броски: {rolledInfo}</div>}
+          {abilityMode === 'pool' && (
+            <div className="row-wrap" style={{ gap: 8 }}>
+              <span className="muted small">Набор:</span>
+              {pool.map((v, i) => {
+                const usedCount = ABILITIES.filter((a) => assigned[a] === v).length;
+                const poolCount = pool.filter((x) => x === v).length;
+                const exhausted = usedCount >= poolCount && pool.indexOf(v) === i;
+                return (
+                  <span key={i} className="chip" style={{ opacity: exhausted ? 0.4 : 1, fontSize: 15 }}>
+                    {v}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          {abilityMode === 'pool' && rolledInfo && <div className="small faint">Броски: {rolledInfo}</div>}
           <div className="ability-grid">
             {ABILITIES.map((a) => {
               const taken = ABILITIES.filter((x) => x !== a && assigned[x] !== null).map((x) => assigned[x]) as number[];
@@ -569,16 +734,27 @@ export function CreationWizard({ onClose }: Props) {
               return (
                 <div key={a} className="panel" style={{ padding: 12, textAlign: 'center' }}>
                   <div className="small gold" style={{ fontWeight: 700, letterSpacing: '0.1em' }}>{ABILITY_SHORT[a]}</div>
-                  <select
-                    style={{ width: '100%', marginTop: 6, textAlign: 'center', fontSize: 17 }}
-                    value={assigned[a] ?? ''}
-                    onChange={(e) => setAssigned({ ...assigned, [a]: e.target.value === '' ? null : Number(e.target.value) })}
-                  >
-                    <option value="">—</option>
-                    {options.map((v) => (
-                      <option key={v} value={v}>{v}</option>
-                    ))}
-                  </select>
+                  {abilityMode === 'manual' ? (
+                    <input
+                      type="number"
+                      min={1}
+                      max={30}
+                      style={{ width: '100%', marginTop: 6, textAlign: 'center', fontSize: 17 }}
+                      value={assigned[a] ?? 10}
+                      onChange={(e) => setAssigned({ ...assigned, [a]: Math.max(1, Math.min(30, Number(e.target.value) || 10)) })}
+                    />
+                  ) : (
+                    <select
+                      style={{ width: '100%', marginTop: 6, textAlign: 'center', fontSize: 17 }}
+                      value={assigned[a] ?? ''}
+                      onChange={(e) => setAssigned({ ...assigned, [a]: e.target.value === '' ? null : Number(e.target.value) })}
+                    >
+                      <option value="">—</option>
+                      {options.map((v) => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                  )}
                   <div style={{ marginTop: 6, fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--parchment)' }}>
                     {assigned[a] !== null ? finalValue : '·'}
                     {assigned[a] !== null && (
@@ -599,10 +775,10 @@ export function CreationWizard({ onClose }: Props) {
         <div className="col" style={{ gap: 14 }}>
           <div className="muted small">
             Выберите {classDef.skillChoices.count} навыка класса.
-            {background && (
+            {bgSkills.length > 0 && (
               <>
                 {' '}Предыстория уже даёт: <span className="gold">
-                  {background.skills.map((sk) => SKILLS.find((x) => x.id === sk)?.name).join(', ')}
+                  {bgSkills.map((sk) => SKILLS.find((x) => x.id === sk)?.name).join(', ')}
                 </span>.
               </>
             )}
@@ -610,7 +786,7 @@ export function CreationWizard({ onClose }: Props) {
           <div className="row-wrap" style={{ gap: 8 }}>
             {classDef.skillChoices.from.map((skillId) => {
               const def = SKILLS.find((s) => s.id === skillId)!;
-              const fromBg = background?.skills.includes(skillId);
+              const fromBg = bgSkills.includes(skillId);
               const active = skills.includes(skillId);
               return (
                 <button
@@ -638,7 +814,7 @@ export function CreationWizard({ onClose }: Props) {
             <div className="panel" style={{ padding: 14 }}>
               <div className="section-title">Компетентность (два навыка с двойным бонусом)</div>
               <div className="row-wrap" style={{ gap: 8 }}>
-                {[...new Set([...skills, ...(background?.skills ?? [])])].map((skillId) => {
+                {[...new Set([...skills, ...bgSkills])].map((skillId) => {
                   const def = SKILLS.find((s) => s.id === skillId)!;
                   const active = expertise.includes(skillId);
                   return (
@@ -661,7 +837,7 @@ export function CreationWizard({ onClose }: Props) {
             </div>
           )}
 
-          {classId === 'fighter' && (
+          {needsStyle && (
             <div className="panel" style={{ padding: 14 }}>
               <div className="section-title">Боевой стиль</div>
               <div className="col" style={{ gap: 8 }}>
@@ -684,10 +860,10 @@ export function CreationWizard({ onClose }: Props) {
 
       {step === 6 && isCaster && classDef?.caster && (
         <div className="col" style={{ gap: 16 }}>
-          {classDef.caster.cantripsByLevel[1] > 0 && (
+          {(classDef.caster.cantripsByLevel[startLevel] ?? 0) > 0 && (
             <div>
               <div className="section-title">
-                Заговоры — выбрано {cantrips.length} из {classDef.caster.cantripsByLevel[1]}
+                Заговоры — выбрано {cantrips.length} из {classDef.caster.cantripsByLevel[startLevel]}
               </div>
               <div className="col" style={{ gap: 6, maxHeight: 220, overflowY: 'auto', paddingRight: 6 }}>
                 {spellChoices.cantripList.map((spell) => {
@@ -701,7 +877,7 @@ export function CreationWizard({ onClose }: Props) {
                         onChange={() => {
                           if (active) {
                             setCantrips(cantrips.filter((s) => s !== spell.id));
-                          } else if (cantrips.length < classDef.caster!.cantripsByLevel[1]) {
+                          } else if (cantrips.length < (classDef.caster!.cantripsByLevel[startLevel] ?? 0)) {
                             setCantrips([...cantrips, spell.id]);
                           }
                         }}
@@ -718,10 +894,11 @@ export function CreationWizard({ onClose }: Props) {
           )}
           <div>
             <div className="section-title">
-              Заклинания 1 круга — выбрано {prepared.length} из {classDef.caster.preparedByLevel[1]}
+              Заклинания {spellChoices.maxCircle > 1 ? `1–${spellChoices.maxCircle} круга` : '1 круга'} —
+              выбрано {prepared.length} из {classDef.caster.preparedByLevel[startLevel]}
             </div>
             <div className="col" style={{ gap: 6, maxHeight: 260, overflowY: 'auto', paddingRight: 6 }}>
-              {spellChoices.firstLevelList.map((spell) => {
+              {spellChoices.leveledList.map((spell) => {
                 const active = prepared.includes(spell.id);
                 return (
                   <label key={spell.id} className="row" style={{ gap: 8, alignItems: 'flex-start', cursor: 'pointer' }}>
@@ -732,12 +909,15 @@ export function CreationWizard({ onClose }: Props) {
                       onChange={() => {
                         if (active) {
                           setPrepared(prepared.filter((s) => s !== spell.id));
-                        } else if (prepared.length < classDef.caster!.preparedByLevel[1]) {
+                        } else if (prepared.length < (classDef.caster!.preparedByLevel[startLevel] ?? 0)) {
                           setPrepared([...prepared, spell.id]);
                         }
                       }}
                     />
                     <span>
+                      {spellChoices.maxCircle > 1 && (
+                        <span className="chip" style={{ marginRight: 6 }}>{spell.level}</span>
+                      )}
                       {SCHOOL_ICONS[spell.school]} <b>{spell.name}</b>{' '}
                       <span className="small muted">{spell.description}</span>
                     </span>
@@ -749,8 +929,30 @@ export function CreationWizard({ onClose }: Props) {
         </div>
       )}
 
-      {step === 7 && classDef && speciesId && background && (
+      {step === 7 && classDef && speciesId && (background || isCustomBg) && (
         <div className="col" style={{ gap: 14 }}>
+          {needsSubclass && (
+            <div className="panel" style={{ padding: 14 }}>
+              <div className="section-title">
+                {classDef.subclassLabel} (с {classDef.subclassLevel}-го уровня — выберите)
+              </div>
+              <div className="col" style={{ gap: 8 }}>
+                {classDef.subclasses.map((sub) => (
+                  <label key={sub.id} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
+                    <input
+                      type="radio"
+                      checked={subclassSel === sub.id}
+                      onChange={() => setSubclassSel(sub.id)}
+                      style={{ marginTop: 4 }}
+                    />
+                    <span>
+                      <b>{sub.name}.</b> <span className="muted small">{sub.description}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="grid-2">
             <label className="col" style={{ gap: 6 }}>
               <span className="muted small">Мировоззрение</span>
@@ -772,24 +974,11 @@ export function CreationWizard({ onClose }: Props) {
           </label>
           <div className="panel panel-ornate" style={{ padding: 16 }}>
             <div className="row" style={{ gap: 14 }}>
-              <div
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 15,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 34,
-                  background: `linear-gradient(150deg, hsl(${hue} 45% 30%), hsl(${hue} 55% 16%))`,
-                }}
-              >
-                {icon}
-              </div>
+              <PortraitBadge portrait={{ icon, hue, image }} size={60} radius={15} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--parchment)' }}>{name}</div>
                 <div className="muted small">
-                  {SPECIES.find((s) => s.id === speciesId)?.name} · {classDef.name} 1 ур. · {background.name}
+                  {SPECIES.find((s) => s.id === speciesId)?.name} · {classDef.name} {startLevel} ур. · {background?.name ?? customBgName}
                 </div>
               </div>
             </div>
@@ -813,7 +1002,7 @@ export function CreationWizard({ onClose }: Props) {
             Дальше →
           </button>
         ) : (
-          <button className="btn btn-primary btn-lg pulse-ready" onClick={create}>
+          <button className="btn btn-primary btn-lg pulse-ready" onClick={create} disabled={!canNext()}>
             🎉 Создать героя!
           </button>
         )}

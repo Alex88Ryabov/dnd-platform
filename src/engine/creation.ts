@@ -3,8 +3,9 @@ import type {
 } from '../model/types';
 import { CLASSES_BY_ID } from '../data/classes';
 import { BACKGROUNDS_BY_ID } from '../data/backgrounds';
+import { FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, PACT_SLOTS, XP_FOR_LEVEL } from '../data/core';
 import { derive } from './derive';
-import { uid } from './dice';
+import { dieAverage, uid } from './dice';
 
 export interface CreationInput {
   name: string;
@@ -13,7 +14,10 @@ export interface CreationInput {
   classId: ClassId;
   speciesId: SpeciesId;
   backgroundId: string;
+  // своя предыстория: название, черта и инструмент задаются игроком
   customBackground?: string;
+  backgroundFeatId?: string;
+  customBackgroundTool?: string;
   // финальные значения характеристик (бонусы предыстории уже учтены)
   abilities: Record<Ability, number>;
   skills: SkillId[];
@@ -24,6 +28,9 @@ export interface CreationInput {
   prepared: string[];
   alignment: string;
   backstory: string;
+  // для переноса уже существующего героя: стартовый уровень и подкласс
+  level?: number;
+  subclassId?: string;
 }
 
 export function buildNewCharacter(input: CreationInput): Character {
@@ -35,6 +42,7 @@ export function buildNewCharacter(input: CreationInput): Character {
 function assembleCharacter(input: CreationInput): Character {
   const classDef = CLASSES_BY_ID[input.classId];
   const background = BACKGROUNDS_BY_ID[input.backgroundId];
+  const level = Math.max(1, Math.min(20, input.level ?? 1));
   const now = new Date().toISOString();
 
   const skillSet = new Set<SkillId>(input.skills);
@@ -43,10 +51,11 @@ function assembleCharacter(input: CreationInput): Character {
   }
 
   const featIds: string[] = [];
-  if (background) {
-    featIds.push(background.featId);
+  const backgroundFeat = background?.featId ?? input.backgroundFeatId;
+  if (backgroundFeat) {
+    featIds.push(backgroundFeat);
   }
-  if (input.extraFeatId) {
+  if (input.extraFeatId && !featIds.includes(input.extraFeatId)) {
     featIds.push(input.extraFeatId);
   }
 
@@ -57,19 +66,23 @@ function assembleCharacter(input: CreationInput): Character {
     equipped: true,
   }));
 
+  // 1-й уровень — максимум кости хитов, каждый следующий — среднее
+  const hpRolls = [classDef.hitDie, ...Array.from({ length: level - 1 }, () => dieAverage(classDef.hitDie))];
+
   return {
     id: uid(),
     name: input.name.trim() || 'Безымянный герой',
     playerName: input.playerName.trim(),
     portrait: input.portrait,
     classId: input.classId,
+    subclassId: input.subclassId,
     speciesId: input.speciesId,
     backgroundId: input.backgroundId,
     customBackground: input.customBackground,
-    level: 1,
-    xp: 0,
+    level,
+    xp: XP_FOR_LEVEL[level] ?? 0,
     abilities: { ...input.abilities },
-    hpRolls: [classDef.hitDie],
+    hpRolls,
     hpMaxBonus: 0,
     hpCurrent: 0,
     hpTemp: 0,
@@ -78,7 +91,7 @@ function assembleCharacter(input: CreationInput): Character {
     proficientSkills: [...skillSet],
     expertiseSkills: [...(input.expertise ?? [])],
     languages: 'Общий',
-    toolProficiencies: [classDef.toolProficiencies, background?.toolProficiency]
+    toolProficiencies: [classDef.toolProficiencies, background?.toolProficiency, input.customBackgroundTool]
       .filter(Boolean)
       .join(', '),
     featIds,
@@ -104,13 +117,32 @@ function assembleCharacter(input: CreationInput): Character {
     notes: '',
     levelLog: [
       {
-        level: 1,
+        level,
         date: now,
-        hpGained: classDef.hitDie,
-        notes: ['Начало пути!'],
+        hpGained: hpRolls.reduce((a, b) => a + b, 0),
+        notes: level > 1 ? [`Герой присоединился сразу на ${level}-м уровне`] : ['Начало пути!'],
       },
     ],
     createdAt: now,
     updatedAt: now,
   };
+}
+
+// максимальный доступный круг заклинаний для класса на уровне (по таблицам ячеек)
+export function maxSpellCircle(classId: ClassId, level: number): number {
+  const caster = CLASSES_BY_ID[classId].caster;
+  if (!caster) {
+    return 0;
+  }
+  if (caster.kind === 'pact') {
+    return PACT_SLOTS[level][1];
+  }
+  const table = caster.kind === 'half' ? HALF_CASTER_SLOTS[level] : FULL_CASTER_SLOTS[level];
+  let max = 0;
+  table.forEach((slots, i) => {
+    if (slots > 0) {
+      max = i + 1;
+    }
+  });
+  return max;
 }

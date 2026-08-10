@@ -9,6 +9,7 @@ import { SPECIES_BY_ID } from '../../data/species';
 import { BACKGROUNDS_BY_ID } from '../../data/backgrounds';
 import { ClassEmblem } from '../../svg/icons';
 import { HpBadge } from './HpBadge';
+import { PortraitBadge } from '../../components/PortraitBadge';
 import { SheetCombat } from './SheetCombat';
 import { SheetAbilities } from './SheetAbilities';
 import { SheetSpells } from './SheetSpells';
@@ -79,23 +80,7 @@ export function CharacterSheet({ character, onBack }: Props) {
 
       <div className="panel panel-ornate">
         <div className="row-wrap" style={{ gap: 16, alignItems: 'flex-start' }}>
-          <div
-            style={{
-              width: 86,
-              height: 86,
-              borderRadius: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 48,
-              background: `linear-gradient(150deg, hsl(${character.portrait.hue} 45% 30%), hsl(${character.portrait.hue} 55% 14%))`,
-              border: '1px solid var(--border-strong)',
-              boxShadow: '0 8px 22px rgba(0,0,0,0.4)',
-              flexShrink: 0,
-            }}
-          >
-            {character.portrait.icon}
-          </div>
+          <PortraitBadge portrait={character.portrait} size={86} radius={20} />
 
           <div className="grow" style={{ minWidth: 240 }}>
             <h1 style={{ fontSize: 'clamp(24px, 3vw, 34px)' }}>{character.name}</h1>

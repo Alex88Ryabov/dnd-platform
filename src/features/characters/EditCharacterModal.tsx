@@ -2,7 +2,11 @@ import { useState } from 'react';
 import type { Ability, Character, SkillId } from '../../model/types';
 import { useStore } from '../../store/store';
 import { ABILITIES, ABILITY_SHORT, PORTRAIT_ICONS, SKILLS } from '../../data/core';
+import { CLASSES_BY_ID } from '../../data/classes';
+import { dieAverage } from '../../engine/dice';
 import { Modal } from '../../components/Modal';
+import { PortraitBadge } from '../../components/PortraitBadge';
+import { fileToPortraitImage } from '../../components/portraitUtil';
 import { toast } from '../../components/Toasts';
 
 interface Props {
@@ -17,6 +21,9 @@ export function EditCharacterModal({ character, onClose }: Props) {
   const [playerName, setPlayerName] = useState(character.playerName);
   const [icon, setIcon] = useState(character.portrait.icon);
   const [hue, setHue] = useState(character.portrait.hue);
+  const [image, setImage] = useState(character.portrait.image);
+  const [level, setLevel] = useState(character.level);
+  const [subclassId, setSubclassId] = useState(character.subclassId ?? '');
   const [abilities, setAbilities] = useState<Record<Ability, number>>({ ...character.abilities });
   const [xp, setXp] = useState(character.xp);
   const [hpMaxBonus, setHpMaxBonus] = useState(character.hpMaxBonus);
@@ -26,22 +33,37 @@ export function EditCharacterModal({ character, onClose }: Props) {
   const [expertise, setExpertise] = useState<SkillId[]>([...character.expertiseSkills]);
 
   const save = () => {
-    updateCharacter(character.id, (c) => ({
-      ...c,
-      name: name.trim() || c.name,
-      playerName: playerName.trim(),
-      portrait: { icon, hue },
-      abilities: { ...abilities },
-      xp: Math.max(0, xp),
-      hpMaxBonus,
-      acOverride: acOverrideOn ? acOverride : undefined,
-      proficientSkills: proficient,
-      expertiseSkills: expertise.filter((e) => proficient.includes(e)),
-      updatedAt: new Date().toISOString(),
-    }));
+    const classDef = CLASSES_BY_ID[character.classId];
+    updateCharacter(character.id, (c) => {
+      // при смене уровня добираем/убираем кости хитов (новые уровни — по среднему)
+      let hpRolls = c.hpRolls;
+      if (level > c.level) {
+        hpRolls = [...c.hpRolls, ...Array.from({ length: level - c.level }, () => dieAverage(classDef.hitDie))];
+      } else if (level < c.level) {
+        hpRolls = c.hpRolls.slice(0, level);
+      }
+      return {
+        ...c,
+        name: name.trim() || c.name,
+        playerName: playerName.trim(),
+        portrait: { icon, hue, image },
+        level,
+        hpRolls,
+        subclassId: subclassId || undefined,
+        abilities: { ...abilities },
+        xp: Math.max(0, xp),
+        hpMaxBonus,
+        acOverride: acOverrideOn ? acOverride : undefined,
+        proficientSkills: proficient,
+        expertiseSkills: expertise.filter((e) => proficient.includes(e)),
+        updatedAt: new Date().toISOString(),
+      };
+    });
     toast('Сохранено', 'Лист персонажа обновлён', '✅');
     onClose();
   };
+
+  const classDef = CLASSES_BY_ID[character.classId];
 
   return (
     <Modal title="Правка героя" onClose={onClose} wide>
@@ -57,6 +79,33 @@ export function EditCharacterModal({ character, onClose }: Props) {
           </label>
         </div>
 
+        <div className="row-wrap" style={{ gap: 10, alignItems: 'center' }}>
+          <PortraitBadge portrait={{ icon, hue, image }} size={56} radius={14} />
+          <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
+            📷 Своя картинка
+            <input
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  try {
+                    setImage(await fileToPortraitImage(file));
+                  } catch {
+                    toast('Не получилось', 'Не удалось прочитать картинку', '⚠️');
+                  }
+                }
+                e.target.value = '';
+              }}
+            />
+          </label>
+          {image && (
+            <button className="btn btn-ghost btn-sm" onClick={() => setImage(undefined)}>
+              ✕ Убрать картинку
+            </button>
+          )}
+        </div>
         <div className="row-wrap" style={{ gap: 6 }}>
           {PORTRAIT_ICONS.map((p) => (
             <button
@@ -105,6 +154,28 @@ export function EditCharacterModal({ character, onClose }: Props) {
         </div>
 
         <div className="row-wrap" style={{ gap: 16 }}>
+          <label className="row" style={{ gap: 6 }}>
+            <span className="muted small">Уровень</span>
+            <input
+              className="num-input"
+              type="number"
+              min={1}
+              max={20}
+              value={level}
+              onChange={(e) => setLevel(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
+            />
+          </label>
+          {level >= classDef.subclassLevel && (
+            <label className="row" style={{ gap: 6 }}>
+              <span className="muted small">{classDef.subclassLabel}</span>
+              <select value={subclassId} onChange={(e) => setSubclassId(e.target.value)}>
+                <option value="">— не выбран —</option>
+                {classDef.subclasses.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="row" style={{ gap: 6 }}>
             <span className="muted small">Опыт (XP)</span>
             <input className="num-input" style={{ width: 100 }} type="number" min={0} value={xp} onChange={(e) => setXp(Number(e.target.value) || 0)} />

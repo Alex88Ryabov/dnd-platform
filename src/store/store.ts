@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type {
   Character, CombatState, Combatant, ConditionId, JournalEntry, Money, NpcNote,
-  PlaceNote, Quest, RollLogEntry, SaveSlot, Settings,
+  PlaceNote, PlayerReview, Quest, RollLogEntry, SaveSlot, Settings,
 } from '../model/types';
 import { uid } from '../engine/dice';
 
@@ -59,6 +59,10 @@ export interface AppState {
   updatePlace: (id: string, patch: Partial<PlaceNote>) => void;
   deletePlace: (id: string) => void;
 
+  reviews: PlayerReview[];
+  addReview: (review: Omit<PlayerReview, 'id' | 'ts'>) => void;
+  deleteReview: (id: string) => void;
+
   startCombat: () => void;
   endCombat: () => void;
   addCombatant: (combatant: Omit<Combatant, 'uid'>) => void;
@@ -104,6 +108,7 @@ export const useStore = create<AppState>()(
           quests: s.quests,
           npcs: s.npcs,
           places: s.places,
+          reviews: s.reviews,
           combat: s.combat,
           rollLog: s.rollLog,
           settings: s.settings,
@@ -130,6 +135,7 @@ export const useStore = create<AppState>()(
             quests: data.quests ?? [],
             npcs: data.npcs ?? [],
             places: data.places ?? [],
+            reviews: data.reviews ?? [],
             combat: data.combat ?? EMPTY_COMBAT,
             rollLog: data.rollLog ?? [],
             settings: { ...get().settings, ...(data.settings ?? {}) },
@@ -197,6 +203,14 @@ export const useStore = create<AppState>()(
         npcs: s.npcs.map((n) => (n.id === id ? { ...n, ...patch } : n)),
       })),
       deleteNpc: (id) => set((s) => ({ npcs: s.npcs.filter((n) => n.id !== id) })),
+
+      reviews: [],
+      addReview: (review) => set((s) => ({
+        reviews: [{ ...review, id: uid(), ts: new Date().toISOString() }, ...s.reviews],
+      })),
+      deleteReview: (id) => set((s) => ({
+        reviews: s.reviews.filter((r) => r.id !== id),
+      })),
 
       addPlace: (place) => set((s) => ({ places: [{ ...place, id: uid() }, ...s.places] })),
       updatePlace: (id, patch) => set((s) => ({
@@ -354,6 +368,7 @@ export const useStore = create<AppState>()(
             quests: data.quests ?? [],
             npcs: data.npcs ?? [],
             places: data.places ?? [],
+            reviews: data.reviews ?? [],
             settings: { ...get().settings, ...(data.settings ?? {}) },
             combat: data.combat ?? EMPTY_COMBAT,
             rollLog: data.rollLog ?? [],
@@ -369,6 +384,7 @@ export const useStore = create<AppState>()(
         quests: [],
         npcs: [],
         places: [],
+        reviews: [],
         combat: EMPTY_COMBAT,
         rollLog: [],
         selectedCharacterId: undefined,
@@ -391,6 +407,7 @@ export function exportStateJson(): string {
       quests: s.quests,
       npcs: s.npcs,
       places: s.places,
+      reviews: s.reviews,
       settings: s.settings,
       combat: s.combat,
       rollLog: s.rollLog,
