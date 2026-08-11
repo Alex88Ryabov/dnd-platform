@@ -35,8 +35,8 @@ export function CharactersView() {
   return (
     <div className="col" style={{ gap: 18 }}>
       <Confetti />
-      <div className="row spread">
-        <h1 style={{ fontSize: 34 }}>Герои отряда</h1>
+      <div className="row-wrap spread" style={{ gap: 10 }}>
+        <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>Герои отряда</h1>
         <button className="btn btn-primary" onClick={() => setCreating(true)}>
           ✨ Создать героя
         </button>
@@ -140,7 +140,7 @@ function ConfirmDelete({ name, onCancel, onConfirm }: { name: string; onCancel: 
       }
     }}
     >
-      <div className="modal-box" style={{ width: 420 }}>
+      <div className="modal-box" style={{ maxWidth: 420 }}>
         <h3 className="modal-title">Удалить героя?</h3>
         <p className="muted" style={{ margin: '10px 0 18px' }}>
           {name} исчезнет из летописи навсегда. Отменить это будет нельзя.

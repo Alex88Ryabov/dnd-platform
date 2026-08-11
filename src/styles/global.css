@@ -43,14 +43,22 @@ body {
   font-size: 16px;
   line-height: 1.45;
   color: var(--ink);
+  background: var(--bg-deep);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* фон отдельным fixed-слоем: background-attachment: fixed не работает на iOS */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background:
     radial-gradient(1200px 700px at 85% -10%, rgba(123, 94, 167, 0.18), transparent 60%),
     radial-gradient(900px 600px at -10% 110%, rgba(212, 169, 78, 0.08), transparent 55%),
     radial-gradient(700px 500px at 50% 120%, rgba(90, 167, 214, 0.06), transparent 60%),
     linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-main) 45%, #0e0a1e 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  overflow-x: hidden;
 }
 
 ::selection {
@@ -78,6 +86,7 @@ h1, h2, h3, h4 {
   color: var(--parchment);
   letter-spacing: 0.02em;
   line-height: 1.15;
+  overflow-wrap: break-word;
 }
 
 button {
@@ -118,9 +127,10 @@ textarea {
 
 /* ============ Каркас ============ */
 
+/* minmax(0, 1fr): иначе колонка не ужимается ниже min-content контента и распирает страницу */
 .app-shell {
   display: grid;
-  grid-template-columns: 235px 1fr;
+  grid-template-columns: 235px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -132,6 +142,7 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  overflow-y: auto;
   background: linear-gradient(180deg, rgba(20, 14, 40, 0.92), rgba(13, 9, 28, 0.96));
   border-right: 1px solid var(--border-soft);
   backdrop-filter: blur(8px);
@@ -196,13 +207,14 @@ textarea {
   padding: 28px clamp(16px, 4vw, 44px) 90px;
   max-width: 1250px;
   width: 100%;
+  min-width: 0;
   margin: 0 auto;
   position: relative;
 }
 
 @media (max-width: 860px) {
   .app-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .sidebar {
@@ -212,22 +224,37 @@ textarea {
     left: 0;
     right: 0;
     height: auto;
+    overflow: visible;
     flex-direction: row;
     justify-content: space-around;
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    gap: 0;
+    padding: 5px 4px calc(5px + env(safe-area-inset-bottom));
     border-right: none;
     border-top: 1px solid var(--border-strong);
   }
 
-  .sidebar-brand, .sidebar-footer {
+  /* специфичность выше, чем у .col и .grow, иначе они возвращают элементам display/flex */
+  .sidebar .sidebar-brand,
+  .sidebar .sidebar-footer,
+  .sidebar .grow {
     display: none;
   }
 
   .nav-btn {
+    flex: 1 1 auto;
+    min-width: 0;
     flex-direction: column;
+    justify-content: center;
     gap: 3px;
-    font-size: 11px;
-    padding: 7px 10px;
+    font-size: 10.5px;
+    padding: 6px 3px;
+  }
+
+  .nav-label {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .nav-btn.active {
@@ -235,7 +262,8 @@ textarea {
   }
 
   .main-area {
-    padding-bottom: 120px;
+    padding-top: 20px;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom));
   }
 }
 
@@ -676,6 +704,7 @@ textarea {
 .modal-box {
   width: min(660px, 100%);
   max-height: min(86vh, 900px);
+  max-height: min(90dvh, 900px);
   overflow-y: auto;
   background: linear-gradient(165deg, #201a3a, #171130);
   border: 1px solid var(--border-strong);
@@ -904,13 +933,13 @@ table.nice td {
 
 .grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 16px;
 }
 
 .grid-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
   gap: 16px;
 }
 
@@ -925,6 +954,7 @@ table.nice td {
   border-bottom: 1px solid var(--border-soft);
   margin-bottom: 16px;
   overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .tab-btn {
@@ -973,7 +1003,8 @@ table.nice td {
 
 @media (max-width: 860px) {
   .toast-wrap {
-    bottom: 90px;
+    right: 12px;
+    bottom: calc(74px + env(safe-area-inset-bottom));
   }
 }
 
@@ -984,12 +1015,73 @@ table.nice td {
   padding: 12px 18px;
   box-shadow: var(--shadow-card);
   animation: toast-in 0.3s cubic-bezier(0.2, 1.2, 0.35, 1);
-  max-width: 340px;
+  max-width: min(340px, calc(100vw - 24px));
 }
 
 @keyframes toast-in {
   from { transform: translateX(60px); opacity: 0; }
   to { transform: none; opacity: 1; }
+}
+
+/* ============ Дракон на главной ============ */
+
+.hero-dragon {
+  display: block;
+  width: min(330px, 80vw);
+  height: auto;
+}
+
+/* ============ Узкие экраны ============ */
+
+@media (max-width: 520px) {
+  .panel {
+    padding: 16px 14px;
+  }
+
+  .modal-overlay {
+    padding: 10px;
+  }
+
+  .modal-box {
+    padding: 20px 14px;
+  }
+
+  .modal-title {
+    font-size: 21px;
+  }
+
+  .btn-lg {
+    padding: 12px 22px;
+    font-size: 17px;
+  }
+
+  .tab-btn {
+    font-size: 15px;
+    padding: 8px 12px;
+  }
+
+  .levelup-number {
+    font-size: 64px;
+  }
+
+  .main-area {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* ============ Тач-цели на сенсорных экранах ============ */
+
+@media (pointer: coarse) {
+  .slot-orb {
+    width: 26px;
+    height: 26px;
+  }
+
+  .res-pip {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 /* ============ Печать листа ============ */

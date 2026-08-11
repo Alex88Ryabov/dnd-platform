@@ -122,7 +122,7 @@ export function SheetCombat({ character, stats, onHpFlash }: Props) {
 
           {dying && (
             <div className="panel" style={{ marginTop: 12, padding: 14, borderColor: 'rgba(226,84,67,0.5)', background: 'rgba(226,84,67,0.07)' }}>
-              <div className="row spread">
+              <div className="row-wrap spread" style={{ gap: 8 }}>
                 <b style={{ color: 'var(--danger)' }}>💀 При смерти!</b>
                 <button className="btn btn-primary btn-sm" onClick={rollDeathSave}>Спасбросок от смерти</button>
               </div>

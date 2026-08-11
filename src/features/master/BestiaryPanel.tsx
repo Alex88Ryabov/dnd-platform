@@ -90,7 +90,7 @@ export function BestiaryPanel({ onAdd }: BestiaryPanelProps) {
         <span className="muted small">{filtered.length} существ</span>
       </div>
 
-      <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
+      <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))' }}>
         {filtered.map((monster) => (
           <div
             key={monster.id}

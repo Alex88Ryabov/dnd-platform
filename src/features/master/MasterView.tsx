@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useStore } from '../../store/store';
+import { downloadBackup, importBackupFile } from '../../store/backup';
 import { CombatTracker } from './CombatTracker';
 import { BestiaryPanel } from './BestiaryPanel';
 import { ChecksPanel } from './ChecksPanel';
@@ -24,7 +25,7 @@ export function MasterView() {
 
   return (
     <div className="col" style={{ gap: 16 }}>
-      <h1 style={{ fontSize: 34 }}>Экран мастера</h1>
+      <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>Экран мастера</h1>
       <div className="tab-row">
         {tabs.map((t) => (
           <button key={t.id} className={`tab-btn${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id)}>
@@ -55,6 +56,7 @@ function CampaignSettings() {
   const [confirmReset, setConfirmReset] = useState(false);
   const [slotName, setSlotName] = useState('');
   const [restoring, setRestoring] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="col" style={{ gap: 16 }}>
@@ -63,7 +65,6 @@ function CampaignSettings() {
         <p className="muted small" style={{ marginBottom: 12 }}>
           Игра сохраняется автоматически после каждого действия. Слоты ниже — контрольные точки:
           сохранитесь перед опасным подземельем и вернитесь, если что-то пойдёт не так.
-          Кнопка «Сохранить копию» слева внизу дополнительно скачивает всё в файл.
         </p>
         <div className="row-wrap" style={{ gap: 8, marginBottom: 12 }}>
           <input
@@ -89,7 +90,7 @@ function CampaignSettings() {
         ) : (
           <div className="col" style={{ gap: 8 }}>
             {snapshots.map((slot) => (
-              <div key={slot.id} className="row spread" style={{ padding: '8px 12px', borderRadius: 9, background: 'rgba(0,0,0,0.22)' }}>
+              <div key={slot.id} className="row-wrap spread" style={{ padding: '8px 12px', borderRadius: 9, background: 'rgba(0,0,0,0.22)' }}>
                 <div>
                   <b style={{ color: 'var(--parchment)' }}>💾 {slot.name}</b>
                   <div className="small faint">
@@ -104,21 +105,43 @@ function CampaignSettings() {
             ))}
           </div>
         )}
+        <div className="divider" />
+        <p className="muted small" style={{ marginBottom: 10 }}>
+          Файл-копия скачивает всех героев и журнал в один файл — так можно перенести игру
+          на другое устройство или подстраховаться перед экспериментами.
+        </p>
+        <div className="row-wrap" style={{ gap: 8 }}>
+          <button className="btn btn-ghost btn-sm" onClick={downloadBackup}>💾 Скачать файл-копию</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => fileRef.current?.click()}>📂 Загрузить из файла</button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json"
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                importBackupFile(file);
+              }
+              e.target.value = '';
+            }}
+          />
+        </div>
       </section>
 
       <section className="panel">
         <div className="section-title">Правила кампании</div>
         <div className="col" style={{ gap: 10 }}>
-          <label className="row" style={{ gap: 10 }}>
+          <label className="row-wrap" style={{ gap: 10 }}>
             <span className="muted small" style={{ width: 150 }}>Название кампании</span>
             <input
               className="grow"
-              style={{ maxWidth: 340 }}
+              style={{ maxWidth: 340, minWidth: 180 }}
               value={settings.campaignName}
               onChange={(e) => updateSettings({ campaignName: e.target.value })}
             />
           </label>
-          <div className="row" style={{ gap: 10 }}>
+          <div className="row-wrap" style={{ gap: 10 }}>
             <span className="muted small" style={{ width: 150 }}>Развитие героев</span>
             <label className="row" style={{ gap: 6 }}>
               <input type="radio" checked={settings.xpMode === 'xp'} onChange={() => updateSettings({ xpMode: 'xp' })} />
@@ -127,6 +150,17 @@ function CampaignSettings() {
             <label className="row" style={{ gap: 6 }}>
               <input type="radio" checked={settings.xpMode === 'milestone'} onChange={() => updateSettings({ xpMode: 'milestone' })} />
               по вехам истории
+            </label>
+          </div>
+          <div className="row-wrap" style={{ gap: 10 }}>
+            <span className="muted small" style={{ width: 150 }}>Звуки</span>
+            <label className="row" style={{ gap: 6 }}>
+              <input
+                type="checkbox"
+                checked={settings.soundOn}
+                onChange={(e) => updateSettings({ soundOn: e.target.checked })}
+              />
+              {settings.soundOn ? 'включены' : 'выключены'}
             </label>
           </div>
         </div>
@@ -165,8 +199,8 @@ function CampaignSettings() {
       <section className="panel" style={{ borderColor: 'rgba(226,84,67,0.35)' }}>
         <div className="section-title" style={{ color: 'var(--danger)' }}>Опасная зона</div>
         <p className="muted small" style={{ marginBottom: 10 }}>
-          Данные живут в этом браузере. Перед большими переменами сохраните копию
-          (кнопка «Сохранить копию» слева внизу).
+          Данные живут в этом браузере. Перед большими переменами скачайте
+          файл-копию (кнопка в разделе «Сохранение прогресса» выше).
         </p>
         <button className="btn btn-danger btn-sm" onClick={() => setConfirmReset(true)}>
           🗑️ Стереть все данные

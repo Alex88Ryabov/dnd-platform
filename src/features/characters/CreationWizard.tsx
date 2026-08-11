@@ -352,7 +352,7 @@ export function CreationWizard({ onClose }: Props) {
       )}
 
       {step === 1 && (
-        <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(215px, 1fr))' }}>
+        <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 215px), 1fr))' }}>
           {CLASSES.map((c) => (
             <div
               key={c.id}
@@ -429,7 +429,7 @@ export function CreationWizard({ onClose }: Props) {
 
             <div
               className="grid-cards"
-              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8, maxHeight: 300, overflowY: 'auto', paddingRight: 4 }}
+              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 150px), 1fr))', gap: 8, maxHeight: 300, overflowY: 'auto', paddingRight: 4 }}
             >
               {list.map((s) => (
                 <button
@@ -488,7 +488,7 @@ export function CreationWizard({ onClose }: Props) {
 
       {step === 3 && (
         <div className="col" style={{ gap: 16 }}>
-          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))' }}>
+          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 230px), 1fr))' }}>
             {BACKGROUNDS.map((b) => (
               <div
                 key={b.id}

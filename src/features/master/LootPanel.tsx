@@ -97,7 +97,7 @@ export function LootPanel() {
             </button>
           ))}
         </div>
-        <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', maxWidth: 640 }}>
+        <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', maxWidth: 640 }}>
           {RICHNESS_CARDS.map((card) => (
             <button
               key={card.id}

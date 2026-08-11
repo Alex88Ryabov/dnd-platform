@@ -69,9 +69,9 @@ export function CharacterSheet({ character, onBack }: Props) {
 
   return (
     <div className="col" style={{ gap: 16 }}>
-      <div className="row spread">
+      <div className="row-wrap spread" style={{ gap: 8 }}>
         <button className="btn btn-ghost btn-sm" onClick={onBack}>← Все герои</button>
-        <div className="row" style={{ gap: 8 }}>
+        <div className="row-wrap" style={{ gap: 8 }}>
           <button className="btn btn-ghost btn-sm" onClick={() => setShortResting(true)}>🔥 Короткий отдых</button>
           <button className="btn btn-ghost btn-sm" onClick={doLongRest}>🌙 Долгий отдых</button>
           <button className="btn btn-ghost btn-sm" onClick={() => setEditing(true)}>✎ Править</button>

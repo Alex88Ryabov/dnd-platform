@@ -81,7 +81,7 @@ export function DiceView() {
 
   return (
     <div className="col" style={{ gap: 18 }}>
-      <h1 style={{ fontSize: 34 }}>Броски кубиков</h1>
+      <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>Броски кубиков</h1>
 
       <section className="panel panel-ornate">
         <div className="section-title">Выберите кости</div>

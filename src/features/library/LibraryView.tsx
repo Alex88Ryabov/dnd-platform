@@ -15,7 +15,7 @@ export function LibraryView() {
 
   return (
     <div className="col" style={{ gap: 16 }}>
-      <h1 style={{ fontSize: 34 }}>Справочник</h1>
+      <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>Справочник</h1>
       <div className="tab-row">
         <button className={`tab-btn${tab === 'guide' ? ' active' : ''}`} onClick={() => setTab('guide')}>🎓 Как играть</button>
         <button className={`tab-btn${tab === 'races' ? ' active' : ''}`} onClick={() => setTab('races')}>🧝 Расы</button>

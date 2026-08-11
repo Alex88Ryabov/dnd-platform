@@ -85,8 +85,8 @@ export function HomeView() {
               </button>
             </div>
           </div>
-          <div style={{ margin: '-20px -10px -30px auto' }}>
-            <DragonHero size={330} />
+          <div style={{ margin: '-10px 0 -24px auto', maxWidth: '100%' }}>
+            <DragonHero size={330} className="hero-dragon" />
           </div>
         </div>
       </section>

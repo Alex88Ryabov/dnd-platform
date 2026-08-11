@@ -30,7 +30,7 @@ export function JournalView() {
 
   return (
     <div className="col" style={{ gap: 16 }}>
-      <h1 style={{ fontSize: 34 }}>Журнал кампании</h1>
+      <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>Журнал кампании</h1>
       <div className="tab-row">
         {tabs.map((t) => (
           <button key={t.id} className={`tab-btn${tab === t.id ? ' active' : ''}`} onClick={() => setTab(t.id)}>
@@ -103,7 +103,7 @@ function ReviewsTab() {
               placeholder="Кто оставляет отзыв (имя игрока)"
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
-              style={{ width: 240 }}
+              style={{ flex: 1, minWidth: 180, maxWidth: 300 }}
               list="review-authors"
             />
             <datalist id="review-authors">
@@ -153,7 +153,7 @@ function ReviewsTab() {
           {reviews.map((review) => (
             <section key={review.id} className="panel">
               <div className="row spread">
-                <div className="row" style={{ gap: 10 }}>
+                <div className="row-wrap" style={{ gap: 10 }}>
                   <b className="script gold" style={{ fontSize: 19 }}>{review.author}</b>
                   <Stars value={review.rating} size={16} />
                   <span className="small faint">{new Date(review.ts).toLocaleDateString('ru')}</span>
@@ -229,8 +229,8 @@ function EntriesTab() {
             const kindDef = ENTRY_KINDS.find((k) => k.id === entry.kind);
             return (
               <section key={entry.id} className="panel">
-                <div className="row spread">
-                  <div className="row" style={{ gap: 8 }}>
+                <div className="row spread" style={{ alignItems: 'flex-start' }}>
+                  <div className="row-wrap" style={{ gap: 8 }}>
                     <span style={{ fontSize: 20 }}>{kindDef?.icon}</span>
                     <b style={{ fontFamily: 'var(--font-display)', fontSize: 18, color: 'var(--parchment)' }}>{entry.title}</b>
                     <span className="small faint">
@@ -312,14 +312,14 @@ function QuestsTab() {
             const info = statusInfo[quest.status];
             return (
               <section key={quest.id} className="panel" style={{ opacity: quest.status === 'active' ? 1 : 0.75 }}>
-                <div className="row spread">
+                <div className="row-wrap spread" style={{ gap: 8 }}>
                   <div className="row" style={{ gap: 8 }}>
                     <span style={{ fontSize: 20 }}>{info.icon}</span>
                     <b style={{ fontFamily: 'var(--font-display)', fontSize: 17, color: info.color, textDecoration: quest.status !== 'active' ? 'line-through' : 'none' }}>
                       {quest.title}
                     </b>
                   </div>
-                  <div className="row" style={{ gap: 6 }}>
+                  <div className="row-wrap" style={{ gap: 6 }}>
                     {(Object.keys(statusInfo) as Quest['status'][]).map((s) => (
                       <button
                         key={s}

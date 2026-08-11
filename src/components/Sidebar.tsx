@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 import type { ReactElement } from 'react';
-import { exportStateJson, useStore } from '../store/store';
+import { useStore } from '../store/store';
 import type { ViewId } from '../store/store';
+import { downloadBackup, importBackupFile } from '../store/backup';
 import {
   BookIcon, CampfireIcon, CrownIcon, D20Icon, HeroIcon, ScrollIcon,
 } from '../svg/icons';
-import { toast } from './Toasts';
 import { sfx } from '../audio/sound';
 
 const NAV: { id: ViewId; label: string; icon: (props: { size?: number; className?: string }) => ReactElement }[] = [
@@ -22,32 +22,7 @@ export function Sidebar() {
   const setView = useStore((s) => s.setView);
   const soundOn = useStore((s) => s.settings.soundOn);
   const updateSettings = useStore((s) => s.updateSettings);
-  const importState = useStore((s) => s.importState);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const doExport = () => {
-    const blob = new Blob([exportStateJson()], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `letopis-geroev-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('Копия сохранена', 'Файл с героями и журналом скачан', '📜');
-  };
-
-  const doImport = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const ok = importState(String(reader.result ?? ''));
-      if (ok) {
-        toast('Данные загружены', 'Герои и журнал восстановлены из файла', '✨');
-      } else {
-        toast('Не получилось', 'Файл не похож на резервную копию платформы', '⚠️');
-      }
-    };
-    reader.readAsText(file);
-  };
 
   return (
     <aside className="sidebar">
@@ -71,7 +46,7 @@ export function Sidebar() {
             }}
           >
             <Icon size={22} className="nav-icon" />
-            {item.label}
+            <span className="nav-label">{item.label}</span>
           </button>
         );
       })}
@@ -87,7 +62,7 @@ export function Sidebar() {
           <span style={{ fontSize: 19, width: 22, textAlign: 'center' }}>{soundOn ? '🔔' : '🔕'}</span>
           {soundOn ? 'Звук вкл.' : 'Звук выкл.'}
         </button>
-        <button className="nav-btn" onClick={doExport} title="Скачать резервную копию всех данных">
+        <button className="nav-btn" onClick={downloadBackup} title="Скачать резервную копию всех данных">
           <span style={{ fontSize: 19, width: 22, textAlign: 'center' }}>💾</span>
           Сохранить копию
         </button>
@@ -107,7 +82,7 @@ export function Sidebar() {
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) {
-              doImport(file);
+              importBackupFile(file);
             }
             e.target.value = '';
           }}

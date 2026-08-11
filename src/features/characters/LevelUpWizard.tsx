@@ -203,7 +203,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
       {phase === 'subclass' && (
         <div className="col" style={{ gap: 14 }}>
           <div className="section-title">{classDef.subclassLabel}: время выбора!</div>
-          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+          <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))' }}>
             {classDef.subclasses.map((sub) => (
               <div
                 key={sub.id}
