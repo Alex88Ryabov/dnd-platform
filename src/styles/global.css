@@ -252,6 +252,15 @@ textarea {
   background: rgba(10, 7, 22, 0.55);
 }
 
+/* на узких экранах угол занят заголовком — ставим переключатель отдельной строкой над ним */
+@media (max-width: 860px) {
+  .lang-row-float {
+    position: static;
+    width: 170px;
+    margin-bottom: 6px;
+  }
+}
+
 @media (max-width: 860px) {
   .app-shell {
     grid-template-columns: minmax(0, 1fr);
