@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import type { Ability, Character, SkillId } from '../../model/types';
 import { useStore } from '../../store/store';
-import { ABILITIES, ABILITY_SHORT, PORTRAIT_ICONS, SKILLS } from '../../data/core';
-import { CLASSES_BY_ID } from '../../data/classes';
+import { ABILITIES, PORTRAIT_ICONS, SKILLS } from '../../data/core';
+import { useCatalog } from '../../i18n/catalog';
+import { useRules } from '../../i18n/rules';
+import { useT } from '../../i18n/tr';
+import { T_WIZARD } from '../../i18n/ui/wizard';
+import { T_FEATURES } from '../../i18n/ui/features';
+import { T_COMMON } from '../../i18n/ui/common';
 import { dieAverage } from '../../engine/dice';
 import { Modal } from '../../components/Modal';
+import { NumberField } from '../../components/NumberField';
 import { PortraitBadge } from '../../components/PortraitBadge';
 import { fileToPortraitImage } from '../../components/portraitUtil';
 import { toast } from '../../components/Toasts';
@@ -16,6 +22,9 @@ interface Props {
 
 export function EditCharacterModal({ character, onClose }: Props) {
   const updateCharacter = useStore((s) => s.updateCharacter);
+  const t = useT();
+  const { classesById } = useCatalog();
+  const { abilityShort, skillNames } = useRules();
 
   const [name, setName] = useState(character.name);
   const [playerName, setPlayerName] = useState(character.playerName);
@@ -32,8 +41,9 @@ export function EditCharacterModal({ character, onClose }: Props) {
   const [proficient, setProficient] = useState<SkillId[]>([...character.proficientSkills]);
   const [expertise, setExpertise] = useState<SkillId[]>([...character.expertiseSkills]);
 
+  const classDef = classesById[character.classId];
+
   const save = () => {
-    const classDef = CLASSES_BY_ID[character.classId];
     updateCharacter(character.id, (c) => {
       // при смене уровня добираем/убираем кости хитов (новые уровни — по среднему)
       let hpRolls = c.hpRolls;
@@ -59,22 +69,20 @@ export function EditCharacterModal({ character, onClose }: Props) {
         updatedAt: new Date().toISOString(),
       };
     });
-    toast('Сохранено', 'Лист персонажа обновлён', '✅');
+    toast(t(T_WIZARD.saved), t(T_WIZARD.savedText), '✅');
     onClose();
   };
 
-  const classDef = CLASSES_BY_ID[character.classId];
-
   return (
-    <Modal title="Правка героя" onClose={onClose} wide>
+    <Modal title={t(T_WIZARD.editTitle)} onClose={onClose} wide>
       <div className="col" style={{ gap: 14 }}>
         <div className="grid-2">
           <label className="col" style={{ gap: 4 }}>
-            <span className="muted small">Имя</span>
+            <span className="muted small">{t(T_WIZARD.editName)}</span>
             <input value={name} onChange={(e) => setName(e.target.value)} />
           </label>
           <label className="col" style={{ gap: 4 }}>
-            <span className="muted small">Игрок</span>
+            <span className="muted small">{t(T_WIZARD.editPlayer)}</span>
             <input value={playerName} onChange={(e) => setPlayerName(e.target.value)} />
           </label>
         </div>
@@ -82,7 +90,7 @@ export function EditCharacterModal({ character, onClose }: Props) {
         <div className="row-wrap" style={{ gap: 10, alignItems: 'center' }}>
           <PortraitBadge portrait={{ icon, hue, image }} size={56} radius={14} />
           <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-            📷 Своя картинка
+            {t(T_WIZARD.ownImage)}
             <input
               type="file"
               accept="image/*"
@@ -93,7 +101,7 @@ export function EditCharacterModal({ character, onClose }: Props) {
                   try {
                     setImage(await fileToPortraitImage(file));
                   } catch {
-                    toast('Не получилось', 'Не удалось прочитать картинку', '⚠️');
+                    toast(t(T_WIZARD.imageFail), t(T_WIZARD.imageFailText), '⚠️');
                   }
                 }
                 e.target.value = '';
@@ -102,7 +110,7 @@ export function EditCharacterModal({ character, onClose }: Props) {
           </label>
           {image && (
             <button className="btn btn-ghost btn-sm" onClick={() => setImage(undefined)}>
-              ✕ Убрать картинку
+              {t(T_WIZARD.removeImage)}
             </button>
           )}
         </div>
@@ -136,18 +144,18 @@ export function EditCharacterModal({ character, onClose }: Props) {
           }}
         />
 
-        <div className="section-title">Характеристики</div>
+        <div className="section-title">{t(T_WIZARD.editAbilities)}</div>
         <div className="row-wrap" style={{ gap: 10 }}>
           {ABILITIES.map((a) => (
             <label key={a} className="col center" style={{ gap: 3 }}>
-              <span className="small gold" style={{ fontWeight: 700 }}>{ABILITY_SHORT[a]}</span>
-              <input
-                className="num-input"
-                type="number"
+              <span className="small gold" style={{ fontWeight: 700 }}>{abilityShort[a]}</span>
+              <NumberField
+                value={abilities[a]}
+                onChange={(v) => setAbilities({ ...abilities, [a]: v })}
                 min={1}
                 max={30}
-                value={abilities[a]}
-                onChange={(e) => setAbilities({ ...abilities, [a]: Number(e.target.value) || 10 })}
+                width={50}
+                ariaLabel={abilityShort[a]}
               />
             </label>
           ))}
@@ -155,21 +163,14 @@ export function EditCharacterModal({ character, onClose }: Props) {
 
         <div className="row-wrap" style={{ gap: 16 }}>
           <label className="row" style={{ gap: 6 }}>
-            <span className="muted small">Уровень</span>
-            <input
-              className="num-input"
-              type="number"
-              min={1}
-              max={20}
-              value={level}
-              onChange={(e) => setLevel(Math.max(1, Math.min(20, Number(e.target.value) || 1)))}
-            />
+            <span className="muted small">{t(T_COMMON.level)}</span>
+            <NumberField value={level} onChange={setLevel} min={1} max={20} width={52} />
           </label>
           {level >= classDef.subclassLevel && (
             <label className="row" style={{ gap: 6 }}>
               <span className="muted small">{classDef.subclassLabel}</span>
               <select value={subclassId} onChange={(e) => setSubclassId(e.target.value)}>
-                <option value="">— не выбран —</option>
+                <option value="">{t(T_FEATURES.notChosen)}</option>
                 {classDef.subclasses.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -177,23 +178,23 @@ export function EditCharacterModal({ character, onClose }: Props) {
             </label>
           )}
           <label className="row" style={{ gap: 6 }}>
-            <span className="muted small">Опыт (XP)</span>
-            <input className="num-input" style={{ width: 100 }} type="number" min={0} value={xp} onChange={(e) => setXp(Number(e.target.value) || 0)} />
+            <span className="muted small">{t(T_WIZARD.editXp)}</span>
+            <NumberField value={xp} onChange={setXp} min={0} width={84} />
           </label>
-          <label className="row" style={{ gap: 6 }} title="Ручная прибавка к максимуму хитов (домашние правила, предметы)">
-            <span className="muted small">Бонус к макс. хитам</span>
-            <input className="num-input" type="number" value={hpMaxBonus} onChange={(e) => setHpMaxBonus(Number(e.target.value) || 0)} />
+          <label className="row" style={{ gap: 6 }} title={t(T_WIZARD.hpBonusHint)}>
+            <span className="muted small">{t(T_WIZARD.editHpBonus)}</span>
+            <NumberField value={hpMaxBonus} onChange={setHpMaxBonus} width={52} />
           </label>
           <label className="row" style={{ gap: 6 }}>
             <input type="checkbox" checked={acOverrideOn} onChange={(e) => setAcOverrideOn(e.target.checked)} />
-            <span className="muted small">КБ вручную</span>
+            <span className="muted small">{t(T_WIZARD.editAcOverride)}</span>
             {acOverrideOn && (
-              <input className="num-input" type="number" min={1} value={acOverride} onChange={(e) => setAcOverride(Number(e.target.value) || 10)} />
+              <NumberField value={acOverride} onChange={setAcOverride} min={1} width={52} />
             )}
           </label>
         </div>
 
-        <div className="section-title">Владение навыками (★ — компетентность)</div>
+        <div className="section-title">{t(T_WIZARD.skillsEditTitle)}</div>
         <div className="row-wrap" style={{ gap: 7 }}>
           {SKILLS.map((skill) => {
             const isProf = proficient.includes(skill.id);
@@ -203,7 +204,7 @@ export function EditCharacterModal({ character, onClose }: Props) {
                 key={skill.id}
                 className={`chip chip-clickable${isProf ? ' chip-active' : ''}`}
                 style={isExp ? { color: 'var(--gold-bright)', fontWeight: 700 } : undefined}
-                title="Клик: нет → владение → компетентность → нет"
+                title={t(T_WIZARD.skillCycleHint)}
                 onClick={() => {
                   if (!isProf) {
                     setProficient([...proficient, skill.id]);
@@ -215,15 +216,15 @@ export function EditCharacterModal({ character, onClose }: Props) {
                   }
                 }}
               >
-                {isExp ? '★ ' : ''}{skill.name}
+                {isExp ? '★ ' : ''}{skillNames[skill.id]}
               </button>
             );
           })}
         </div>
 
         <div className="row" style={{ justifyContent: 'flex-end', gap: 8 }}>
-          <button className="btn btn-ghost" onClick={onClose}>Отмена</button>
-          <button className="btn btn-primary" onClick={save}>Сохранить</button>
+          <button className="btn btn-ghost" onClick={onClose}>{t(T_COMMON.cancel)}</button>
+          <button className="btn btn-primary" onClick={save}>{t(T_COMMON.save)}</button>
         </div>
       </div>
     </Modal>

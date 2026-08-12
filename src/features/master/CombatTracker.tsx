@@ -1,12 +1,20 @@
 import { useMemo, useState } from 'react';
-import type { Combatant, ConditionId } from '../../model/types';
+import type { ConditionId } from '../../model/types';
 import { useStore } from '../../store/store';
-import { MONSTERS } from '../../data/monsters';
-import { CONDITIONS, crLabel } from '../../data/core';
+import { useCatalog } from '../../i18n/catalog';
+import { useRules } from '../../i18n/rules';
+import { useT } from '../../i18n/tr';
+import { T_MASTER } from '../../i18n/ui/master';
+import { T_SHEET } from '../../i18n/ui/sheet';
+import { T_SPELLS } from '../../i18n/ui/spells';
+import { T_CHARS } from '../../i18n/ui/characters';
+import { T_COMMON } from '../../i18n/ui/common';
+import { crLabel } from '../../data/core';
 import { derive, abilityMod } from '../../engine/derive';
 import { rollDie } from '../../engine/dice';
 import { HpBadge } from '../characters/HpBadge';
 import { Modal } from '../../components/Modal';
+import { NumberField } from '../../components/NumberField';
 import { toast } from '../../components/Toasts';
 import { sfx } from '../../audio/sound';
 
@@ -25,6 +33,9 @@ export function CombatTracker() {
   const nextTurn = useStore((s) => s.nextTurn);
   const awardXp = useStore((s) => s.awardXp);
   const settings = useStore((s) => s.settings);
+  const t = useT();
+  const { monsters } = useCatalog();
+  const { conditions } = useRules();
 
   const [monsterSearch, setMonsterSearch] = useState('');
   const [monsterQty, setMonsterQty] = useState(1);
@@ -39,8 +50,8 @@ export function CombatTracker() {
     if (q.length < 2) {
       return [];
     }
-    return MONSTERS.filter((m) => m.name.toLowerCase().includes(q) || m.nameEn.toLowerCase().includes(q)).slice(0, 8);
-  }, [monsterSearch]);
+    return monsters.filter((m) => m.name.toLowerCase().includes(q) || m.nameEn.toLowerCase().includes(q)).slice(0, 8);
+  }, [monsterSearch, monsters]);
 
   const pcsNotInCombat = characters.filter(
     (c) => !combat.combatants.some((cb) => cb.kind === 'pc' && cb.refId === c.id),
@@ -67,7 +78,7 @@ export function CombatTracker() {
   };
 
   const addMonster = (monsterId: string) => {
-    const monster = MONSTERS.find((m) => m.id === monsterId);
+    const monster = monsters.find((m) => m.id === monsterId);
     if (!monster) {
       return;
     }
@@ -110,7 +121,7 @@ export function CombatTracker() {
   const defeatedXp = combat.combatants
     .filter((c) => c.kind === 'monster' && (c.defeated || c.hp === 0))
     .reduce((sum, c) => {
-      const monster = MONSTERS.find((m) => m.id === c.refId);
+      const monster = monsters.find((m) => m.id === c.refId);
       return sum + (monster?.xp ?? 0);
     }, 0);
 
@@ -118,7 +129,7 @@ export function CombatTracker() {
     if (withXp && defeatedXp > 0 && characters.length > 0) {
       const share = Math.floor(defeatedXp / characters.length);
       awardXp(characters.map((c) => c.id), share);
-      toast('Опыт за бой', `Каждый герой получает ${share} XP (всего ${defeatedXp})`, '⭐');
+      toast(t(T_MASTER.combatXp), t(T_MASTER.combatXpText, { share, total: defeatedXp }), '⭐');
     }
     endCombat();
     setEnding(false);
@@ -130,11 +141,11 @@ export function CombatTracker() {
   return (
     <div className="col" style={{ gap: 16 }}>
       <section className="panel">
-        <div className="section-title">Собрать бой</div>
+        <div className="section-title">{t(T_MASTER.gatherCombat)}</div>
         <div className="col" style={{ gap: 12 }}>
           {pcsNotInCombat.length > 0 && (
             <div className="row-wrap" style={{ gap: 8 }}>
-              <span className="muted small">Герои:</span>
+              <span className="muted small">{t(T_MASTER.heroesLabel)}</span>
               {pcsNotInCombat.map((c) => (
                 <button key={c.id} className="chip chip-clickable" onClick={() => addPc(c.id)}>
                   {c.portrait.icon} {c.name}
@@ -142,17 +153,17 @@ export function CombatTracker() {
               ))}
               {pcsNotInCombat.length > 1 && (
                 <button className="btn btn-ghost btn-sm" onClick={() => pcsNotInCombat.forEach((c) => addPc(c.id))}>
-                  + Все герои
+                  {t(T_MASTER.allHeroesBtn)}
                 </button>
               )}
             </div>
           )}
           <div className="row-wrap" style={{ gap: 8, position: 'relative' }}>
-            <span className="muted small">Монстр:</span>
+            <span className="muted small">{t(T_MASTER.monsterLabel)}</span>
             <div style={{ position: 'relative', minWidth: 240, flex: 1, maxWidth: 380 }}>
               <input
                 style={{ width: '100%' }}
-                placeholder="🔍 гоблин, волк, дракон…"
+                placeholder={t(T_MASTER.monsterSearchPh)}
                 value={monsterSearch}
                 onChange={(e) => setMonsterSearch(e.target.value)}
               />
@@ -166,7 +177,7 @@ export function CombatTracker() {
                       onMouseDown={() => addMonster(m.id)}
                     >
                       <span>{m.icon} <b>{m.name}</b></span>
-                      <span className="small muted">ПО {crLabel(m.cr)} · {m.hp} хп</span>
+                      <span className="small muted">{t(T_MASTER.crHp, { cr: crLabel(m.cr), hp: m.hp })}</span>
                     </button>
                   ))}
                 </div>
@@ -174,25 +185,17 @@ export function CombatTracker() {
             </div>
             <label className="row" style={{ gap: 5 }}>
               <span className="muted small">×</span>
-              <input
-                className="num-input"
-                style={{ width: 56 }}
-                type="number"
-                min={1}
-                max={10}
-                value={monsterQty}
-                onChange={(e) => setMonsterQty(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
-              />
+              <NumberField value={monsterQty} onChange={setMonsterQty} min={1} max={10} width={44} />
             </label>
           </div>
           <div className="row-wrap" style={{ gap: 8 }}>
-            <span className="muted small">Свой участник:</span>
-            <input placeholder="Имя" value={customName} onChange={(e) => setCustomName(e.target.value)} style={{ width: 180 }} />
+            <span className="muted small">{t(T_MASTER.customCombatant)}</span>
+            <input placeholder={t(T_MASTER.namePh)} value={customName} onChange={(e) => setCustomName(e.target.value)} style={{ width: 180 }} />
             <label className="row" style={{ gap: 5 }}>
-              <span className="muted small">хиты</span>
-              <input className="num-input" type="number" min={1} value={customHp} onChange={(e) => setCustomHp(Math.max(1, Number(e.target.value) || 1))} />
+              <span className="muted small">{t(T_MASTER.hpLabel)}</span>
+              <NumberField value={customHp} onChange={setCustomHp} min={1} width={52} />
             </label>
-            <button className="btn btn-ghost btn-sm" onClick={addCustom}>+ Добавить</button>
+            <button className="btn btn-ghost btn-sm" onClick={addCustom}>{t(T_SPELLS.addBtn)}</button>
           </div>
         </div>
       </section>
@@ -202,20 +205,20 @@ export function CombatTracker() {
           <div className="row-wrap spread" style={{ marginBottom: 12 }}>
             <div className="row" style={{ gap: 10 }}>
               {combat.active ? (
-                <span className="chip chip-active" style={{ fontSize: 15 }}>⚔️ Раунд {combat.round}</span>
+                <span className="chip chip-active" style={{ fontSize: 15 }}>{t(T_MASTER.roundChip, { n: combat.round })}</span>
               ) : (
                 <button className="btn btn-primary btn-sm pulse-ready" onClick={() => { sortByInitiative(); startCombat(); sfx.crit(); }}>
-                  ▶️ Начать бой!
+                  {t(T_MASTER.startCombat)}
                 </button>
               )}
-              <button className="btn btn-ghost btn-sm" onClick={sortByInitiative}>↕️ По инициативе</button>
+              <button className="btn btn-ghost btn-sm" onClick={sortByInitiative}>{t(T_MASTER.byInitiative)}</button>
               {combat.active && (
                 <button className="btn btn-primary btn-sm" onClick={() => { nextTurn(); sfx.click(); }}>
-                  ⏭️ Следующий ход
+                  {t(T_MASTER.nextTurn)}
                 </button>
               )}
             </div>
-            <button className="btn btn-danger btn-sm" onClick={() => setEnding(true)}>🏁 Завершить бой</button>
+            <button className="btn btn-danger btn-sm" onClick={() => setEnding(true)}>{t(T_MASTER.endCombat)}</button>
           </div>
 
           <div className="col" style={{ gap: 8 }}>
@@ -243,7 +246,7 @@ export function CombatTracker() {
                     <input
                       className="num-input"
                       style={{ width: 54 }}
-                      title="Инициатива"
+                      title={t(T_MASTER.initiativeHint)}
                       type="number"
                       value={combatant.initiative}
                       onChange={(e) => updateCombatant(combatant.uid, { initiative: Number(e.target.value) || 0 })}
@@ -253,20 +256,18 @@ export function CombatTracker() {
                       <b style={{ color: down ? 'var(--danger)' : 'var(--parchment)', textDecoration: down && combatant.kind !== 'pc' ? 'line-through' : 'none' }}>
                         {combatant.name}
                       </b>
-                      <span className="small faint"> · КБ {pc && pcStats ? pcStats.ac : combatant.ac}</span>
-                      {down && combatant.kind === 'pc' && <span className="small" style={{ color: 'var(--danger)' }}> · при смерти!</span>}
+                      <span className="small faint"> · {t(T_CHARS.acChip, { n: pc && pcStats ? pcStats.ac : combatant.ac })}</span>
+                      {down && combatant.kind === 'pc' && <span className="small" style={{ color: 'var(--danger)' }}> · {t(T_MASTER.dyingMark)}</span>}
                       <div style={{ maxWidth: 260, marginTop: 4 }}>
                         <HpBadge current={hp} max={hpMax} temp={pc?.hpTemp ?? 0} />
                       </div>
                     </div>
                     <div className="row" style={{ gap: 5 }}>
-                      <input
-                        className="num-input"
-                        style={{ width: 56 }}
-                        type="number"
-                        min={1}
+                      <NumberField
                         value={getAmount(combatant.uid)}
-                        onChange={(e) => setAmounts({ ...amounts, [combatant.uid]: Math.max(1, Number(e.target.value) || 1) })}
+                        onChange={(v) => setAmounts({ ...amounts, [combatant.uid]: Math.max(1, v) })}
+                        min={1}
+                        width={48}
                       />
                       <button
                         className="btn btn-danger btn-sm"
@@ -287,15 +288,15 @@ export function CombatTracker() {
                       >
                         💚
                       </button>
-                      <button className="icon-btn" title="Состояния" onClick={() => setConditionsFor(combatant.uid)}>😵</button>
-                      <button className="icon-btn" title="Убрать из боя" onClick={() => removeCombatant(combatant.uid)}>✕</button>
+                      <button className="icon-btn" title={t(T_SHEET.conditionsTitle)} onClick={() => setConditionsFor(combatant.uid)}>😵</button>
+                      <button className="icon-btn" title={t(T_MASTER.removeFromCombat)} onClick={() => removeCombatant(combatant.uid)}>✕</button>
                     </div>
                   </div>
                   {combatant.conditions.length > 0 && (
                     <div className="row-wrap" style={{ gap: 5, marginTop: 6, paddingLeft: 66 }}>
                       {combatant.conditions.map((condition) => (
-                        <span key={condition} className="chip" title={CONDITIONS[condition].description} style={{ fontSize: 12 }}>
-                          {CONDITIONS[condition].icon} {CONDITIONS[condition].name}
+                        <span key={condition} className="chip" title={conditions[condition].description} style={{ fontSize: 12 }}>
+                          {conditions[condition].icon} {conditions[condition].name}
                         </span>
                       ))}
                     </div>
@@ -307,7 +308,7 @@ export function CombatTracker() {
 
           {defeatedXp > 0 && (
             <div className="row spread" style={{ marginTop: 12 }}>
-              <span className="small gold">Опыт за поверженных монстров: {defeatedXp} XP</span>
+              <span className="small gold">{t(T_MASTER.defeatedXpLabel, { n: defeatedXp })}</span>
             </div>
           )}
         </section>
@@ -316,24 +317,24 @@ export function CombatTracker() {
       {combat.combatants.length === 0 && (
         <div className="empty-state panel">
           <span className="big-icon">⚔️</span>
-          Добавьте героев и монстров — и да начнётся битва!
+          {t(T_MASTER.emptyCombat)}
         </div>
       )}
 
       {conditionsFor && (
-        <Modal title="Состояния" onClose={() => setConditionsFor(null)}>
+        <Modal title={t(T_SHEET.conditionsTitle)} onClose={() => setConditionsFor(null)}>
           <div className="row-wrap" style={{ gap: 7 }}>
-            {(Object.keys(CONDITIONS) as ConditionId[]).map((condition) => {
+            {(Object.keys(conditions) as ConditionId[]).map((condition) => {
               const combatant = combat.combatants.find((c) => c.uid === conditionsFor);
               const active = combatant?.conditions.includes(condition);
               return (
                 <button
                   key={condition}
                   className={`chip chip-clickable${active ? ' chip-active' : ''}`}
-                  title={CONDITIONS[condition].description}
+                  title={conditions[condition].description}
                   onClick={() => toggleCombatantCondition(conditionsFor, condition)}
                 >
-                  {CONDITIONS[condition].icon} {CONDITIONS[condition].name}
+                  {conditions[condition].icon} {conditions[condition].name}
                 </button>
               );
             })}
@@ -342,21 +343,21 @@ export function CombatTracker() {
       )}
 
       {ending && (
-        <Modal title="Завершить бой?" onClose={() => setEnding(false)}>
+        <Modal title={t(T_MASTER.endCombatTitle)} onClose={() => setEnding(false)}>
           {settings.xpMode === 'xp' && defeatedXp > 0 ? (
             <p className="muted" style={{ marginBottom: 16 }}>
-              За поверженных монстров причитается <b className="gold">{defeatedXp} XP</b>.
-              Разделить на {characters.length} героев (по {Math.floor(defeatedXp / Math.max(1, characters.length))} каждому)?
+              {t(T_MASTER.endXp1)} <b className="gold">{defeatedXp} XP</b>.{' '}
+              {t(T_MASTER.endXp2, { n: characters.length, share: Math.floor(defeatedXp / Math.max(1, characters.length)) })}
             </p>
           ) : (
-            <p className="muted" style={{ marginBottom: 16 }}>Участники будут распущены, раунды сброшены.</p>
+            <p className="muted" style={{ marginBottom: 16 }}>{t(T_MASTER.endCombatPlainText)}</p>
           )}
           <div className="row" style={{ justifyContent: 'flex-end', gap: 8 }}>
-            <button className="btn btn-ghost" onClick={() => setEnding(false)}>Отмена</button>
+            <button className="btn btn-ghost" onClick={() => setEnding(false)}>{t(T_COMMON.cancel)}</button>
             {settings.xpMode === 'xp' && defeatedXp > 0 && (
-              <button className="btn btn-primary" onClick={() => finishCombat(true)}>⭐ Завершить и выдать опыт</button>
+              <button className="btn btn-primary" onClick={() => finishCombat(true)}>{t(T_MASTER.endAndAward)}</button>
             )}
-            <button className="btn btn-danger" onClick={() => finishCombat(false)}>Просто завершить</button>
+            <button className="btn btn-danger" onClick={() => finishCombat(false)}>{t(T_MASTER.justEnd)}</button>
           </div>
         </Modal>
       )}

@@ -1,52 +1,52 @@
 import { useMemo, useState } from 'react';
 import type { Character, InventoryItem, ItemKind, Money } from '../../model/types';
 import type { DerivedStats } from '../../engine/derive';
-import { ITEMS_BY_ID, itemName, resolveItem } from '../../engine/derive';
-import { ITEMS } from '../../data/equipment';
-import { RARITY_INFO } from '../../data/core';
+import { itemName, resolveItem } from '../../engine/derive';
+import { useCatalog } from '../../i18n/catalog';
+import { useLang } from '../../i18n/lang';
+import { useRules } from '../../i18n/rules';
+import { useT } from '../../i18n/tr';
+import { COIN_LABELS, KIND_LABELS, T_GEAR } from '../../i18n/ui/gear';
+import { T_COMMON } from '../../i18n/ui/common';
 import { useStore } from '../../store/store';
 import { uid } from '../../engine/dice';
 import { formulaRoll } from '../../engine/rolling';
 import { toast } from '../../components/Toasts';
 import { sfx } from '../../audio/sound';
 import { Modal } from '../../components/Modal';
+import { NumberField } from '../../components/NumberField';
 
 interface Props {
   character: Character;
   stats: DerivedStats;
 }
 
-const COIN_LABELS: { key: keyof Money; label: string; color: string }[] = [
-  { key: 'pp', label: 'ПМ', color: '#c8d5e8' },
-  { key: 'gp', label: 'ЗМ', color: '#f0c96c' },
-  { key: 'ep', label: 'ЭМ', color: '#b8d0b0' },
-  { key: 'sp', label: 'СМ', color: '#c0c0c8' },
-  { key: 'cp', label: 'ММ', color: '#cb8a5a' },
-];
-
-const KIND_LABELS: Record<ItemKind, string> = {
-  weapon: 'Оружие',
-  armor: 'Доспех',
-  shield: 'Щит',
-  gear: 'Снаряжение',
-  tool: 'Инструмент',
-  consumable: 'Расходник',
-  treasure: 'Сокровище',
-  magic: 'Магический',
+const COIN_COLORS: Record<keyof Money, string> = {
+  pp: '#c8d5e8',
+  gp: '#f0c96c',
+  ep: '#b8d0b0',
+  sp: '#c0c0c8',
+  cp: '#cb8a5a',
 };
+
+const COIN_ORDER: (keyof Money)[] = ['pp', 'gp', 'ep', 'sp', 'cp'];
 
 export function SheetInventory({ character, stats }: Props) {
   const updateCharacter = useStore((s) => s.updateCharacter);
   const [search, setSearch] = useState('');
   const [addingCustom, setAddingCustom] = useState(false);
+  const lang = useLang();
+  const t = useT();
+  const { items, itemsById } = useCatalog();
+  const { rarityInfo } = useRules();
 
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (q.length < 2) {
       return [];
     }
-    return ITEMS.filter((i) => i.name.toLowerCase().includes(q) || i.nameEn.toLowerCase().includes(q)).slice(0, 12);
-  }, [search]);
+    return items.filter((i) => i.name.toLowerCase().includes(q) || i.nameEn.toLowerCase().includes(q)).slice(0, 12);
+  }, [search, items]);
 
   const addItem = (itemId: string) => {
     updateCharacter(character.id, (c) => {
@@ -64,7 +64,7 @@ export function SheetInventory({ character, stats }: Props) {
     });
     sfx.coin();
     setSearch('');
-    toast('Добавлено в рюкзак', ITEMS_BY_ID[itemId]?.name, '🎒');
+    toast(t(T_GEAR.addedToPack), itemsById[itemId]?.name, '🎒');
   };
 
   const patchEntry = (entryUid: string, patch: Partial<InventoryItem>) => {
@@ -86,7 +86,7 @@ export function SheetInventory({ character, stats }: Props) {
     if (!item?.healing) {
       return;
     }
-    const result = formulaRoll({ label: `Выпито: ${item.name}`, formula: item.healing, who: character.name });
+    const result = formulaRoll({ label: t(T_GEAR.drinkLabel, { name: item.name }), formula: item.healing, who: character.name });
     if (result) {
       updateCharacter(character.id, (c) => ({
         ...c,
@@ -115,31 +115,30 @@ export function SheetInventory({ character, stats }: Props) {
     if (ka !== kb) {
       return ka - kb;
     }
-    return itemName(a).localeCompare(itemName(b), 'ru') || (ea?.id ?? '').localeCompare(eb?.id ?? '');
+    return itemName(a).localeCompare(itemName(b), lang) || (ea?.id ?? '').localeCompare(eb?.id ?? '');
   });
 
   return (
     <div className="col" style={{ gap: 16 }}>
       <section className="panel">
-        <div className="section-title">Кошелёк</div>
+        <div className="section-title">{t(T_GEAR.wallet)}</div>
         <div className="row-wrap" style={{ gap: 12 }}>
-          {COIN_LABELS.map(({ key, label, color }) => (
+          {COIN_ORDER.map((key) => (
             <label key={key} className="row" style={{ gap: 6 }}>
               <span style={{
                 width: 26, height: 26, borderRadius: '50%', display: 'inline-flex',
                 alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700,
-                background: `radial-gradient(circle at 35% 30%, ${color}, ${color}55)`,
+                background: `radial-gradient(circle at 35% 30%, ${COIN_COLORS[key]}, ${COIN_COLORS[key]}55)`,
                 color: '#241a08', border: '1px solid rgba(255,255,255,0.3)',
               }}
               >
-                {label}
+                {t(COIN_LABELS[key])}
               </span>
-              <input
-                className="num-input"
-                type="number"
-                min={0}
+              <NumberField
                 value={character.money[key]}
-                onChange={(e) => setCoin(key, Number(e.target.value) || 0)}
+                onChange={(v) => setCoin(key, v)}
+                min={0}
+                ariaLabel={t(COIN_LABELS[key])}
               />
             </label>
           ))}
@@ -147,12 +146,12 @@ export function SheetInventory({ character, stats }: Props) {
       </section>
 
       <section className="panel">
-        <div className="section-title">Рюкзак и экипировка</div>
+        <div className="section-title">{t(T_GEAR.backpack)}</div>
         <div className="row-wrap" style={{ gap: 8, marginBottom: 12, position: 'relative' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
             <input
               style={{ width: '100%' }}
-              placeholder="🔍 Найти предмет в каталоге (например: меч, зелье, верёвка)…"
+              placeholder={t(T_GEAR.searchPh)}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -172,32 +171,32 @@ export function SheetInventory({ character, stats }: Props) {
                     onMouseDown={() => addItem(item.id)}
                   >
                     <span>
-                      <b style={{ color: item.magic ? RARITY_INFO[item.magic.rarity].color : 'var(--parchment)' }}>
+                      <b style={{ color: item.magic ? rarityInfo[item.magic.rarity].color : 'var(--parchment)' }}>
                         {item.name}
                       </b>
-                      <span className="small faint"> · {KIND_LABELS[item.kind]}</span>
+                      <span className="small faint"> · {t(KIND_LABELS[item.kind])}</span>
                     </span>
-                    <span className="small muted">{item.costGp} зм</span>
+                    <span className="small muted">{t(T_GEAR.costGp, { n: item.costGp })}</span>
                   </button>
                 ))}
               </div>
             )}
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => setAddingCustom(true)}>
-            + Свой предмет
+            {t(T_GEAR.addCustomItem)}
           </button>
         </div>
 
         {sorted.length === 0 ? (
-          <div className="muted small">Рюкзак пуст. Найдите что-нибудь в каталоге выше!</div>
+          <div className="muted small">{t(T_GEAR.emptyBackpack)}</div>
         ) : (
           <div className="table-wrap">
             <table className="nice">
               <thead>
                 <tr>
-                  <th>Предмет</th>
-                  <th>Кол-во</th>
-                  <th>Экип.</th>
+                  <th>{t(T_GEAR.thItem)}</th>
+                  <th>{t(T_GEAR.thQty)}</th>
+                  <th>{t(T_GEAR.thEquipped)}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -205,7 +204,7 @@ export function SheetInventory({ character, stats }: Props) {
                 {sorted.map((entry) => {
                   const item = resolveItem(entry);
                   const name = itemName(entry);
-                  const rarityColor = item?.magic ? RARITY_INFO[item.magic.rarity].color : undefined;
+                  const rarityColor = item?.magic ? rarityInfo[item.magic.rarity].color : undefined;
                   const equippable = item ? ['weapon', 'armor', 'shield', 'magic'].includes(item.kind) : true;
                   return (
                     <tr key={entry.uid}>
@@ -216,21 +215,24 @@ export function SheetInventory({ character, stats }: Props) {
                             <button
                               className="chip chip-clickable"
                               style={{ marginLeft: 8, ...(entry.attuned ? { color: 'var(--gold-bright)', borderColor: 'var(--border-strong)' } : {}) }}
-                              title="Настройка на магический предмет"
+                              title={t(T_GEAR.attunementHint)}
                               onClick={() => patchEntry(entry.uid, { attuned: !entry.attuned })}
                             >
-                              {entry.attuned ? '🔗 настроен' : 'настройка?'}
+                              {entry.attuned ? t(T_GEAR.attuned) : t(T_GEAR.attuneQ)}
                             </button>
                           )}
                         </span>
                         {item?.weapon && (
                           <div className="small faint">
-                            {item.weapon.damage} · {item.weapon.properties.join(', ') || 'без свойств'}
+                            {item.weapon.damage} · {item.weapon.properties.join(', ') || t(T_GEAR.noProps)}
                           </div>
                         )}
                         {item?.armor && (
                           <div className="small faint">
-                            КБ {item.armor.baseAC}{item.armor.dexCap === null ? ' + Лов' : item.armor.dexCap > 0 ? ` + Лов (макс. ${item.armor.dexCap})` : ''}
+                            {t(T_GEAR.acBase, { n: item.armor.baseAC })}
+                            {item.armor.dexCap === null
+                              ? t(T_GEAR.plusDex)
+                              : item.armor.dexCap > 0 ? t(T_GEAR.plusDexCap, { cap: item.armor.dexCap }) : ''}
                           </div>
                         )}
                       </td>
@@ -246,7 +248,7 @@ export function SheetInventory({ character, stats }: Props) {
                           <input
                             type="checkbox"
                             checked={Boolean(entry.equipped)}
-                            title="Экипировано (в руках или надето)"
+                            title={t(T_GEAR.equippedHint)}
                             onChange={(e) => patchEntry(entry.uid, { equipped: e.target.checked })}
                           />
                         )}
@@ -254,9 +256,9 @@ export function SheetInventory({ character, stats }: Props) {
                       <td>
                         <div className="row" style={{ gap: 4, justifyContent: 'flex-end' }}>
                           {item?.healing && (
-                            <button className="btn btn-ghost btn-sm" onClick={() => drink(entry)}>🧪 Выпить</button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => drink(entry)}>{t(T_GEAR.drink)}</button>
                           )}
-                          <button className="icon-btn" title="Выбросить" onClick={() => removeEntry(entry.uid)}>🗑️</button>
+                          <button className="icon-btn" title={t(T_GEAR.throwAway)} onClick={() => removeEntry(entry.uid)}>🗑️</button>
                         </div>
                       </td>
                     </tr>
@@ -276,7 +278,7 @@ export function SheetInventory({ character, stats }: Props) {
               inventory: [...c.inventory, { uid: uid(), custom, qty: 1, equipped: false }],
             }));
             setAddingCustom(false);
-            toast('Добавлено', custom.name, '🎒');
+            toast(t(T_GEAR.added), custom.name, '🎒');
           }}
           onClose={() => setAddingCustom(false)}
         />
@@ -292,24 +294,25 @@ function CustomItemModal({ onAdd, onClose }: {
   const [name, setName] = useState('');
   const [kind, setKind] = useState<ItemKind>('gear');
   const [description, setDescription] = useState('');
+  const t = useT();
 
   return (
-    <Modal title="Свой предмет" onClose={onClose}>
+    <Modal title={t(T_GEAR.customItemTitle)} onClose={onClose}>
       <div className="col" style={{ gap: 10 }}>
-        <input autoFocus placeholder="Название (например: Карта старого пирата)" value={name} onChange={(e) => setName(e.target.value)} />
+        <input autoFocus placeholder={t(T_GEAR.itemNamePh)} value={name} onChange={(e) => setName(e.target.value)} />
         <select value={kind} onChange={(e) => setKind(e.target.value as ItemKind)}>
           {(Object.keys(KIND_LABELS) as ItemKind[]).map((k) => (
-            <option key={k} value={k}>{KIND_LABELS[k]}</option>
+            <option key={k} value={k}>{t(KIND_LABELS[k])}</option>
           ))}
         </select>
-        <textarea placeholder="Описание (необязательно)" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <textarea placeholder={t(T_GEAR.descOptional)} value={description} onChange={(e) => setDescription(e.target.value)} />
         <div className="row" style={{ justifyContent: 'flex-end' }}>
           <button
             className="btn btn-primary"
             disabled={!name.trim()}
             onClick={() => onAdd({ name: name.trim(), kind, description: description.trim() || undefined })}
           >
-            Добавить
+            {t(T_COMMON.add)}
           </button>
         </div>
       </div>

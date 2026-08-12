@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useStore } from '../../store/store';
-import { CLASSES_BY_ID } from '../../data/classes';
-import { SPECIES_BY_ID } from '../../data/species';
+import { useCatalog } from '../../i18n/catalog';
+import { useT } from '../../i18n/tr';
+import { T_CHARS } from '../../i18n/ui/characters';
+import { T_COMMON } from '../../i18n/ui/common';
 import { buildSampleParty } from '../../data/seed';
 import { derive } from '../../engine/derive';
 import { ClassEmblem } from '../../svg/icons';
@@ -20,6 +22,8 @@ export function CharactersView() {
   const addCharacter = useStore((s) => s.addCharacter);
   const [creating, setCreating] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  const t = useT();
+  const { classesById, speciesById } = useCatalog();
 
   const selected = characters.find((c) => c.id === selectedId);
 
@@ -36,32 +40,32 @@ export function CharactersView() {
     <div className="col" style={{ gap: 18 }}>
       <Confetti />
       <div className="row-wrap spread" style={{ gap: 10 }}>
-        <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>Герои отряда</h1>
+        <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>{t(T_CHARS.title)}</h1>
         <button className="btn btn-primary" onClick={() => setCreating(true)}>
-          ✨ Создать героя
+          {t(T_CHARS.createHero)}
         </button>
       </div>
 
       {characters.length === 0 && (
         <div className="panel center" style={{ padding: '44px 20px' }}>
           <span style={{ fontSize: 48 }}>🗡️</span>
-          <h2 style={{ margin: '10px 0 6px' }}>Пока никого нет</h2>
+          <h2 style={{ margin: '10px 0 6px' }}>{t(T_CHARS.nobodyYet)}</h2>
           <p className="muted" style={{ maxWidth: 460, margin: '0 auto 18px' }}>
-            Создайте героя с нуля или добавьте готовую партию-пример, чтобы посмотреть, как всё устроено.
+            {t(T_CHARS.emptyHint)}
           </p>
           <div className="row-wrap" style={{ justifyContent: 'center' }}>
             <button className="btn btn-primary btn-lg pulse-ready" onClick={() => setCreating(true)}>
-              ✨ Создать героя
+              {t(T_CHARS.createHero)}
             </button>
             <button
               className="btn btn-ghost btn-lg"
               onClick={() => {
                 buildSampleParty().forEach((c) => addCharacter(c));
                 selectCharacter(undefined);
-                toast('Партия прибыла!', 'Четыре героя-примера добавлены', '🎉');
+                toast(t(T_CHARS.partyArrived), t(T_CHARS.partyAddedText), '🎉');
               }}
             >
-              🎁 Партия-пример
+              {t(T_CHARS.sampleParty)}
             </button>
           </div>
         </div>
@@ -70,7 +74,7 @@ export function CharactersView() {
       <div className="grid-cards">
         {characters.map((char) => {
           const stats = derive(char);
-          const classDef = CLASSES_BY_ID[char.classId];
+          const classDef = classesById[char.classId];
           return (
             <div
               key={char.id}
@@ -86,10 +90,10 @@ export function CharactersView() {
                   </div>
                   <div className="small muted row" style={{ gap: 6 }}>
                     <ClassEmblem classId={char.classId} size={15} color={classDef.color} />
-                    {classDef.name} {char.level} ур. · {SPECIES_BY_ID[char.speciesId].name}
+                    {classDef.name} {t(T_COMMON.levelOf, { n: char.level })} · {speciesById[char.speciesId].name}
                   </div>
                   {char.playerName && (
-                    <div className="small faint script">Игрок: {char.playerName}</div>
+                    <div className="small faint script">{t(T_CHARS.player, { name: char.playerName })}</div>
                   )}
                 </div>
               </div>
@@ -97,11 +101,11 @@ export function CharactersView() {
                 <HpBadge current={char.hpCurrent} max={stats.hpMax} temp={char.hpTemp} />
               </div>
               <div className="row spread" style={{ marginTop: 10 }}>
-                <span className="chip">КБ {stats.ac}</span>
-                <span className="chip">Мастерство +{stats.pb}</span>
+                <span className="chip">{t(T_CHARS.acChip, { n: stats.ac })}</span>
+                <span className="chip">{t(T_CHARS.pbChip, { n: stats.pb })}</span>
                 <button
                   className="icon-btn"
-                  title="Удалить героя"
+                  title={t(T_CHARS.deleteHero)}
                   onClick={(e) => {
                     e.stopPropagation();
                     setConfirmingDelete(char.id);
@@ -122,7 +126,7 @@ export function CharactersView() {
           onConfirm={() => {
             deleteCharacter(confirmingDelete);
             setConfirmingDelete(null);
-            toast('Герой ушёл на покой', undefined, '🕯️');
+            toast(t(T_CHARS.heroRetired), undefined, '🕯️');
           }}
         />
       )}
@@ -133,6 +137,7 @@ export function CharactersView() {
 }
 
 function ConfirmDelete({ name, onCancel, onConfirm }: { name: string; onCancel: () => void; onConfirm: () => void }) {
+  const t = useT();
   return (
     <div className="modal-overlay" onMouseDown={(e) => {
       if (e.target === e.currentTarget) {
@@ -141,13 +146,13 @@ function ConfirmDelete({ name, onCancel, onConfirm }: { name: string; onCancel: 
     }}
     >
       <div className="modal-box" style={{ maxWidth: 420 }}>
-        <h3 className="modal-title">Удалить героя?</h3>
+        <h3 className="modal-title">{t(T_CHARS.deleteQuestion)}</h3>
         <p className="muted" style={{ margin: '10px 0 18px' }}>
-          {name} исчезнет из летописи навсегда. Отменить это будет нельзя.
+          {t(T_CHARS.deleteWarning, { name })}
         </p>
         <div className="row" style={{ justifyContent: 'flex-end' }}>
-          <button className="btn btn-ghost" onClick={onCancel}>Оставить</button>
-          <button className="btn btn-danger" onClick={onConfirm}>Удалить</button>
+          <button className="btn btn-ghost" onClick={onCancel}>{t(T_CHARS.keep)}</button>
+          <button className="btn btn-danger" onClick={onConfirm}>{t(T_COMMON.delete)}</button>
         </div>
       </div>
     </div>

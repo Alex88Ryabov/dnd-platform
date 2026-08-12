@@ -3,6 +3,9 @@ import { useStore } from '../../store/store';
 import { checkRoll, formulaRoll } from '../../engine/rolling';
 import { rollAbilityScore } from '../../engine/dice';
 import { showRoll } from '../../components/RollOverlay';
+import { LANG_LOCALES, useLang } from '../../i18n/lang';
+import { useT } from '../../i18n/tr';
+import { T_DICE } from '../../i18n/ui/dice';
 import { sfx } from '../../audio/sound';
 
 const DICE = [4, 6, 8, 10, 12, 20, 100];
@@ -24,6 +27,8 @@ export function DiceView() {
   const [modifier, setModifier] = useState(0);
   const [mode, setMode] = useState<'normal' | 'adv' | 'dis'>('normal');
   const [customFormula, setCustomFormula] = useState('');
+  const lang = useLang();
+  const t = useT();
 
   const poolEntries = DICE.filter((d) => (pool[d] ?? 0) > 0).map((d) => ({ die: d, count: pool[d] }));
   const poolEmpty = poolEntries.length === 0;
@@ -43,11 +48,11 @@ export function DiceView() {
       return;
     }
     if (singleD20) {
-      checkRoll({ label: 'Бросок d20', modifier, mode });
+      checkRoll({ label: t(T_DICE.d20Roll), modifier, mode });
     } else {
       const formula = poolEntries.map((e) => `${e.count}d${e.die}`).join('+')
         + (modifier !== 0 ? (modifier > 0 ? `+${modifier}` : `${modifier}`) : '');
-      formulaRoll({ label: 'Бросок', formula });
+      formulaRoll({ label: t(T_DICE.roll), formula });
     }
   };
 
@@ -55,14 +60,14 @@ export function DiceView() {
     const r = rollAbilityScore();
     sfx.dice();
     showRoll({
-      label: `Характеристика: 4d6, без меньшей (${r.rolls.join(', ')} → убрана ${r.dropped})`,
+      label: t(T_DICE.statRollLabel, { rolls: r.rolls.join(', '), dropped: r.dropped }),
       kind: 'formula',
       detail: [{ die: 6, results: r.rolls }],
       modifier: 0,
       total: r.total,
     });
     useStore.getState().pushRoll({
-      label: `4d6 без меньшей [${r.rolls.join(', ')}]`,
+      label: t(T_DICE.statRollShort, { rolls: r.rolls.join(', ') }),
       rolls: [{ die: 6, results: r.rolls }],
       modifier: 0,
       total: r.total,
@@ -73,7 +78,7 @@ export function DiceView() {
     if (!customFormula.trim()) {
       return;
     }
-    const ok = formulaRoll({ label: 'Своя формула', formula: customFormula.trim() });
+    const ok = formulaRoll({ label: t(T_DICE.customFormula), formula: customFormula.trim() });
     if (!ok) {
       sfx.fumble();
     }
@@ -81,10 +86,10 @@ export function DiceView() {
 
   return (
     <div className="col" style={{ gap: 18 }}>
-      <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>Броски кубиков</h1>
+      <h1 style={{ fontSize: 'clamp(26px, 6.5vw, 34px)' }}>{t(T_DICE.title)}</h1>
 
       <section className="panel panel-ornate">
-        <div className="section-title">Выберите кости</div>
+        <div className="section-title">{t(T_DICE.choose)}</div>
         <div className="row-wrap" style={{ gap: 14, justifyContent: 'center', padding: '6px 0 14px' }}>
           {DICE.map((die) => (
             <div key={die} className="center">
@@ -95,7 +100,7 @@ export function DiceView() {
                   e.preventDefault();
                   removeDie(die);
                 }}
-                title={`Добавить d${die} (правый клик — убрать)`}
+                title={t(T_DICE.addDieHint, { die })}
                 style={{
                   width: 74,
                   height: 74,
@@ -124,7 +129,7 @@ export function DiceView() {
 
         <div className="row-wrap" style={{ gap: 14, justifyContent: 'center', alignItems: 'center' }}>
           <div className="row" style={{ gap: 6 }}>
-            <span className="muted small">Модификатор</span>
+            <span className="muted small">{t(T_DICE.modifier)}</span>
             <button className="icon-btn" onClick={() => setModifier((m) => m - 1)}>−</button>
             <b style={{ fontFamily: 'var(--font-display)', fontSize: 20, minWidth: 34, textAlign: 'center' }}>
               {modifier >= 0 ? `+${modifier}` : modifier}
@@ -140,18 +145,18 @@ export function DiceView() {
                   className={`chip chip-clickable${mode === m ? ' chip-active' : ''}`}
                   onClick={() => setMode(m)}
                 >
-                  {m === 'normal' ? 'Обычный' : m === 'adv' ? '⏫ Преимущество' : '⏬ Помеха'}
+                  {m === 'normal' ? t(T_DICE.normal) : m === 'adv' ? t(T_DICE.advantage) : t(T_DICE.disadvantage)}
                 </button>
               ))}
             </div>
           )}
 
           <button className="btn btn-primary btn-lg pulse-ready" onClick={doRoll} disabled={poolEmpty}>
-            🎲 БРОСИТЬ!
+            {t(T_DICE.rollBig)}
           </button>
           {!poolEmpty && (
             <button className="btn btn-ghost btn-sm" onClick={() => setPool({})}>
-              Сбросить набор
+              {t(T_DICE.clearPool)}
             </button>
           )}
         </div>
@@ -159,20 +164,20 @@ export function DiceView() {
 
       <div className="grid-2">
         <section className="panel">
-          <div className="section-title">Быстрые броски</div>
+          <div className="section-title">{t(T_DICE.quickRolls)}</div>
           <div className="row-wrap" style={{ gap: 8 }}>
-            <button className="btn btn-ghost btn-sm" onClick={() => checkRoll({ label: 'Бросок d20', modifier: 0 })}>d20</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => checkRoll({ label: 'd20 с преимуществом', modifier: 0, mode: 'adv' })}>⏫ Преимущество</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => checkRoll({ label: 'd20 с помехой', modifier: 0, mode: 'dis' })}>⏬ Помеха</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => formulaRoll({ label: 'Урон', formula: '2d6' })}>2d6</button>
-            <button className="btn btn-ghost btn-sm" onClick={() => formulaRoll({ label: 'Урон', formula: '1d8+3' })}>1d8+3</button>
-            <button className="btn btn-ghost btn-sm" onClick={rollStat}>4d6 без меньшей</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => checkRoll({ label: t(T_DICE.d20Roll), modifier: 0 })}>d20</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => checkRoll({ label: t(T_DICE.d20Adv), modifier: 0, mode: 'adv' })}>{t(T_DICE.advantage)}</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => checkRoll({ label: t(T_DICE.d20Dis), modifier: 0, mode: 'dis' })}>{t(T_DICE.disadvantage)}</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => formulaRoll({ label: t(T_DICE.damage), formula: '2d6' })}>2d6</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => formulaRoll({ label: t(T_DICE.damage), formula: '1d8+3' })}>1d8+3</button>
+            <button className="btn btn-ghost btn-sm" onClick={rollStat}>{t(T_DICE.statBtn)}</button>
           </div>
           <div className="divider" />
           <div className="row" style={{ gap: 8 }}>
             <input
               className="grow"
-              placeholder="Своя формула: 3d6+2, 1d20+5, 8d6…"
+              placeholder={t(T_DICE.customPlaceholder)}
               value={customFormula}
               onChange={(e) => setCustomFormula(e.target.value)}
               onKeyDown={(e) => {
@@ -181,19 +186,19 @@ export function DiceView() {
                 }
               }}
             />
-            <button className="btn btn-primary btn-sm" onClick={rollCustom}>Бросить</button>
+            <button className="btn btn-primary btn-sm" onClick={rollCustom}>{t(T_DICE.rollBtn)}</button>
           </div>
         </section>
 
         <section className="panel">
           <div className="row spread">
-            <div className="section-title" style={{ marginBottom: 0 }}>История бросков</div>
+            <div className="section-title" style={{ marginBottom: 0 }}>{t(T_DICE.history)}</div>
             {rollLog.length > 0 && (
-              <button className="btn btn-ghost btn-sm" onClick={clearRollLog}>Очистить</button>
+              <button className="btn btn-ghost btn-sm" onClick={clearRollLog}>{t(T_DICE.clear)}</button>
             )}
           </div>
           <div className="col" style={{ gap: 6, marginTop: 10, maxHeight: 420, overflowY: 'auto' }}>
-            {rollLog.length === 0 && <div className="muted small">Пока тихо. Бросьте что-нибудь!</div>}
+            {rollLog.length === 0 && <div className="muted small">{t(T_DICE.quiet)}</div>}
             {rollLog.map((roll) => (
               <div key={roll.id} className="row spread" style={{ padding: '5px 8px', borderRadius: 8, background: 'rgba(0,0,0,0.18)' }}>
                 <div className="small grow" style={{ minWidth: 0 }}>
@@ -204,7 +209,7 @@ export function DiceView() {
                   <div className="faint" style={{ fontSize: 12 }}>
                     {roll.rolls.map((r) => `d${r.die}[${r.results.join(',')}]`).join(' ')}
                     {roll.modifier !== 0 ? ` ${roll.modifier > 0 ? '+' : ''}${roll.modifier}` : ''}
-                    {' · '}{new Date(roll.ts).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })}
+                    {' · '}{new Date(roll.ts).toLocaleTimeString(LANG_LOCALES[lang], { hour: '2-digit', minute: '2-digit' })}
                   </div>
                 </div>
                 <b

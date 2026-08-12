@@ -1,30 +1,36 @@
 import { useState } from 'react';
 import type { LootResult, LootRichness, LootTier } from '../../engine/loot';
 import { generateLoot } from '../../engine/loot';
-import { ITEMS_BY_ID } from '../../engine/derive';
-import { RARITY_INFO } from '../../data/core';
+import { useCatalog } from '../../i18n/catalog';
+import { useRules } from '../../i18n/rules';
+import { useT } from '../../i18n/tr';
+import type { Tri } from '../../i18n/tr';
+import { T_MASTER } from '../../i18n/ui/master';
 import { useStore } from '../../store/store';
 import { uid } from '../../engine/dice';
 import { toast } from '../../components/Toasts';
 import { sfx } from '../../audio/sound';
 
-const RICHNESS_CARDS: { id: LootRichness; icon: string; title: string; hint: string }[] = [
-  { id: 'pocket', icon: '👛', title: 'Карманы врага', hint: 'мелочь с одного противника' },
-  { id: 'chest', icon: '🧰', title: 'Сундук', hint: 'достойная находка' },
-  { id: 'hoard', icon: '👑', title: 'Клад!', hint: 'сокровищница логова' },
+const RICHNESS_CARDS: { id: LootRichness; icon: string; title: Tri; hint: Tri }[] = [
+  { id: 'pocket', icon: '👛', title: T_MASTER.pocket, hint: T_MASTER.pocketHint },
+  { id: 'chest', icon: '🧰', title: T_MASTER.chest, hint: T_MASTER.chestHint },
+  { id: 'hoard', icon: '👑', title: T_MASTER.hoard, hint: T_MASTER.hoardHint },
 ];
 
-const TIER_LABELS: Record<LootTier, string> = {
-  1: 'Уровни 1–4',
-  2: 'Уровни 5–10',
-  3: 'Уровни 11–16',
-  4: 'Уровни 17–20',
+const TIER_RANGES: Record<LootTier, string> = {
+  1: '1–4',
+  2: '5–10',
+  3: '11–16',
+  4: '17–20',
 };
 
 export function LootPanel() {
   const characters = useStore((s) => s.characters);
   const updateCharacter = useStore((s) => s.updateCharacter);
   const awardMoney = useStore((s) => s.awardMoney);
+  const t = useT();
+  const { itemsById } = useCatalog();
+  const { rarityInfo } = useRules();
 
   const avgLevel = characters.length > 0
     ? characters.reduce((sum, c) => sum + c.level, 0) / characters.length
@@ -60,40 +66,40 @@ export function LootPanel() {
       }));
     }
     sfx.levelUp();
-    toast('Добыча выдана!', `${receiver.name} прячет сокровища в рюкзак`, '💰');
+    toast(t(T_MASTER.lootGiven), t(T_MASTER.lootGivenText, { name: receiver.name }), '💰');
     setLoot(null);
   };
 
   const coinsText = (l: LootResult) => {
     const parts: string[] = [];
     if (l.money.pp > 0) {
-      parts.push(`${l.money.pp} платиновых`);
+      parts.push(t(T_MASTER.platinum, { n: l.money.pp }));
     }
     if (l.money.gp > 0) {
-      parts.push(`${l.money.gp} золотых`);
+      parts.push(t(T_MASTER.gold, { n: l.money.gp }));
     }
     if (l.money.sp > 0) {
-      parts.push(`${l.money.sp} серебряных`);
+      parts.push(t(T_MASTER.silver, { n: l.money.sp }));
     }
     if (l.money.cp > 0) {
-      parts.push(`${l.money.cp} медных`);
+      parts.push(t(T_MASTER.copper, { n: l.money.cp }));
     }
-    return parts.length > 0 ? parts.join(', ') : 'ни монетки';
+    return parts.length > 0 ? parts.join(', ') : t(T_MASTER.coinsNone);
   };
 
   return (
     <div className="col" style={{ gap: 16 }}>
       <section className="panel">
-        <div className="section-title">Генератор сокровищ</div>
+        <div className="section-title">{t(T_MASTER.lootGen)}</div>
         <div className="row-wrap" style={{ gap: 10, marginBottom: 14 }}>
-          <span className="muted small">Сила партии:</span>
-          {( [1, 2, 3, 4] as LootTier[]).map((t) => (
+          <span className="muted small">{t(T_MASTER.partyPower)}</span>
+          {([1, 2, 3, 4] as LootTier[]).map((tv) => (
             <button
-              key={t}
-              className={`chip chip-clickable${tier === t ? ' chip-active' : ''}`}
-              onClick={() => setTier(t)}
+              key={tv}
+              className={`chip chip-clickable${tier === tv ? ' chip-active' : ''}`}
+              onClick={() => setTier(tv)}
             >
-              {TIER_LABELS[t]}
+              {t(T_MASTER.tierLabel, { r: TIER_RANGES[tv] })}
             </button>
           ))}
         </div>
@@ -106,14 +112,14 @@ export function LootPanel() {
               onClick={() => setRichness(card.id)}
             >
               <div style={{ fontSize: 38 }}>{card.icon}</div>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, marginTop: 4 }}>{card.title}</div>
-              <div className="small faint">{card.hint}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, marginTop: 4 }}>{t(card.title)}</div>
+              <div className="small faint">{t(card.hint)}</div>
             </button>
           ))}
         </div>
         <div style={{ marginTop: 16 }}>
           <button className="btn btn-primary btn-lg pulse-ready" onClick={generate}>
-            ✨ Что нашли герои?
+            {t(T_MASTER.whatFound)}
           </button>
         </div>
       </section>
@@ -128,11 +134,11 @@ export function LootPanel() {
           {loot.items.length > 0 && (
             <div className="col" style={{ gap: 8 }}>
               {loot.items.map((entry, i) => {
-                const item = ITEMS_BY_ID[entry.itemId];
+                const item = itemsById[entry.itemId];
                 if (!item) {
                   return null;
                 }
-                const rarity = item.magic ? RARITY_INFO[item.magic.rarity] : null;
+                const rarity = item.magic ? rarityInfo[item.magic.rarity] : null;
                 return (
                   <div key={i} className={`row float-in float-in-${Math.min(4, i + 1)}`} style={{ gap: 10 }}>
                     <span style={{ fontSize: 20 }}>{item.kind === 'magic' ? '🔮' : item.kind === 'treasure' ? '💎' : '📦'}</span>
@@ -151,15 +157,15 @@ export function LootPanel() {
           <div className="divider" />
           <div className="row-wrap" style={{ gap: 10 }}>
             <select value={receiverId} onChange={(e) => setReceiverId(e.target.value)}>
-              {characters.length === 0 && <option value="">— нет героев —</option>}
+              {characters.length === 0 && <option value="">{t(T_MASTER.noHeroes)}</option>}
               {characters.map((c) => (
                 <option key={c.id} value={c.id}>{c.portrait.icon} {c.name}</option>
               ))}
             </select>
             <button className="btn btn-primary" onClick={give} disabled={characters.length === 0}>
-              🎁 Выдать герою
+              {t(T_MASTER.giveHero)}
             </button>
-            <button className="btn btn-ghost" onClick={generate}>🎲 Другая добыча</button>
+            <button className="btn btn-ghost" onClick={generate}>{t(T_MASTER.otherLoot)}</button>
           </div>
         </section>
       )}

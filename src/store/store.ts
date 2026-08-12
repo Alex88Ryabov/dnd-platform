@@ -96,6 +96,7 @@ export const useStore = create<AppState>()(
         campaignName: 'Летопись героев',
         soundOn: true,
         xpMode: 'xp',
+        lang: 'ru',
       },
       snapshots: [],
       view: 'home',
@@ -115,7 +116,8 @@ export const useStore = create<AppState>()(
         });
         const slot: SaveSlot = {
           id: uid(),
-          name: name.trim() || `Сохранение ${new Date().toLocaleString('ru')}`,
+          // вызывающая сторона передаёт локализованное имя; здесь только страховка
+          name: name.trim() || new Date().toLocaleString(),
           ts: new Date().toISOString(),
           charactersCount: s.characters.length,
           payload,
@@ -392,7 +394,15 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'dnd-platform-v1',
-      version: 1,
+      version: 2,
+      // v2: появился выбор языка — старым сохранениям проставляем русский
+      migrate: (persisted) => {
+        const state = persisted as AppState;
+        if (state.settings && !state.settings.lang) {
+          state.settings.lang = 'ru';
+        }
+        return state;
+      },
     },
   ),
 );

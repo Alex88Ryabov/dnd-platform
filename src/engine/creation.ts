@@ -2,8 +2,10 @@ import type {
   Ability, Character, ClassId, Portrait, SkillId, SpeciesId,
 } from '../model/types';
 import { CLASSES_BY_ID } from '../data/classes';
-import { BACKGROUNDS_BY_ID } from '../data/backgrounds';
 import { FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, PACT_SLOTS, XP_FOR_LEVEL } from '../data/core';
+import { getCatalog } from '../i18n/catalog';
+import { tr } from '../i18n/tr';
+import { T_ENGINE } from '../i18n/ui/engine';
 import { derive } from './derive';
 import { dieAverage, uid } from './dice';
 
@@ -40,8 +42,9 @@ export function buildNewCharacter(input: CreationInput): Character {
 }
 
 function assembleCharacter(input: CreationInput): Character {
-  const classDef = CLASSES_BY_ID[input.classId];
-  const background = BACKGROUNDS_BY_ID[input.backgroundId];
+  const { classesById, backgroundsById } = getCatalog();
+  const classDef = classesById[input.classId];
+  const background = backgroundsById[input.backgroundId];
   const level = Math.max(1, Math.min(20, input.level ?? 1));
   const now = new Date().toISOString();
 
@@ -71,7 +74,7 @@ function assembleCharacter(input: CreationInput): Character {
 
   return {
     id: uid(),
-    name: input.name.trim() || 'Безымянный герой',
+    name: input.name.trim() || tr(T_ENGINE.namelessHero),
     playerName: input.playerName.trim(),
     portrait: input.portrait,
     classId: input.classId,
@@ -90,7 +93,7 @@ function assembleCharacter(input: CreationInput): Character {
     deathSaves: { successes: 0, failures: 0 },
     proficientSkills: [...skillSet],
     expertiseSkills: [...(input.expertise ?? [])],
-    languages: 'Общий',
+    languages: tr(T_ENGINE.commonLanguage),
     toolProficiencies: [classDef.toolProficiencies, background?.toolProficiency, input.customBackgroundTool]
       .filter(Boolean)
       .join(', '),
@@ -120,7 +123,7 @@ function assembleCharacter(input: CreationInput): Character {
         level,
         date: now,
         hpGained: hpRolls.reduce((a, b) => a + b, 0),
-        notes: level > 1 ? [`Герой присоединился сразу на ${level}-м уровне`] : ['Начало пути!'],
+        notes: level > 1 ? [tr(T_ENGINE.joinedAtLevel, { n: level })] : [tr(T_ENGINE.journeyBegins)],
       },
     ],
     createdAt: now,

@@ -460,10 +460,13 @@ export interface RollLogEntry {
 
 // ---------- Настройки ----------
 
+export type AppLang = 'ru' | 'uk' | 'en';
+
 export interface Settings {
   campaignName: string;
   soundOn: boolean;
   xpMode: 'xp' | 'milestone';
+  lang: AppLang;
 }
 
 // ---------- Слоты сохранений ----------

@@ -3,9 +3,13 @@ import type { Ability, Character } from '../../model/types';
 import { useStore } from '../../store/store';
 import type { AsiDecision } from '../../engine/levelup';
 import { applyLevelUp, previewLevelUp } from '../../engine/levelup';
+import { ABILITIES } from '../../data/core';
 import { CLASSES_BY_ID } from '../../data/classes';
-import { ABILITIES, ABILITY_NAMES } from '../../data/core';
-import { FEATS, FEATS_BY_ID, FIGHTING_STYLES } from '../../data/feats';
+import { useCatalog } from '../../i18n/catalog';
+import { useLang } from '../../i18n/lang';
+import { useRules } from '../../i18n/rules';
+import { useT } from '../../i18n/tr';
+import { T_WIZARD } from '../../i18n/ui/wizard';
 import { rollDie } from '../../engine/dice';
 import { Modal } from '../../components/Modal';
 import { fireConfetti } from '../../components/Confetti';
@@ -21,7 +25,11 @@ type Phase = 'preview' | 'hp' | 'subclass' | 'asi' | 'style' | 'done';
 
 export function LevelUpWizard({ character, onClose }: Props) {
   const updateCharacter = useStore((s) => s.updateCharacter);
-  const preview = useMemo(() => previewLevelUp(character), [character]);
+  const lang = useLang();
+  const t = useT();
+  const { classesById, feats, featsById, fightingStyles } = useCatalog();
+  const { abilityNames } = useRules();
+  const preview = useMemo(() => previewLevelUp(character), [character, lang]);
 
   const [phase, setPhase] = useState<Phase>('preview');
   const [hpGain, setHpGain] = useState<number | null>(null);
@@ -39,8 +47,11 @@ export function LevelUpWizard({ character, onClose }: Props) {
     return null;
   }
 
-  const classDef = CLASSES_BY_ID[character.classId];
-  const gainsStyle = preview.features.some((f) => f.name === 'Боевой стиль') && !character.fightingStyleId;
+  const classDef = classesById[character.classId];
+  // признак нового боевого стиля проверяем по русскому каталогу — в переводах имя другое
+  const gainsStyle = CLASSES_BY_ID[character.classId].features
+    .some((f) => f.level === preview.newLevel && f.name === 'Боевой стиль')
+    && !character.fightingStyleId;
 
   const phaseOrder: Phase[] = [
     'preview',
@@ -85,7 +96,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
     setPhase('done');
     fireConfetti();
     sfx.levelUp();
-    toast(`Уровень ${preview.newLevel}!`, `${character.name} становится сильнее`, '🌟');
+    toast(t(T_WIZARD.levelUpToast, { n: preview.newLevel }), t(T_WIZARD.levelUpToastText, { name: character.name }), '🌟');
   };
 
   const doRollHp = () => {
@@ -101,7 +112,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
 
   return (
     <Modal
-      title={phase === 'done' ? undefined : `Повышение уровня — ${preview.newLevel}`}
+      title={phase === 'done' ? undefined : t(T_WIZARD.luTitle, { n: preview.newLevel })}
       onClose={onClose}
       wide
     >
@@ -109,13 +120,13 @@ export function LevelUpWizard({ character, onClose }: Props) {
         <div className="col" style={{ gap: 14 }}>
           <div className="center">
             <div className="faint small" style={{ letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-              {classDef.name} достигает уровня
+              {t(T_WIZARD.reachesLevel, { cls: classDef.name })}
             </div>
             <div className="levelup-number levelup-banner">{preview.newLevel}</div>
           </div>
           {preview.features.length + preview.subclassFeatures.length > 0 ? (
             <div className="panel" style={{ padding: 16 }}>
-              <div className="section-title">Что нового</div>
+              <div className="section-title">{t(T_WIZARD.whatsNew)}</div>
               <div className="col" style={{ gap: 10 }}>
                 {[...preview.features, ...preview.subclassFeatures].map((f, i) => (
                   <div key={i} className={`float-in float-in-${Math.min(4, i + 1)}`}>
@@ -126,7 +137,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
               </div>
             </div>
           ) : (
-            <div className="muted center small">На этом уровне — рост хитов и внутренней силы.</div>
+            <div className="muted center small">{t(T_WIZARD.quietLevel)}</div>
           )}
           {preview.spellNotes.length > 0 && (
             <div className="panel" style={{ padding: 14 }}>
@@ -137,7 +148,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
           )}
           <div className="row" style={{ justifyContent: 'flex-end' }}>
             <button className="btn btn-primary btn-lg" onClick={() => setPhase('hp')}>
-              Вперёд →
+              {t(T_WIZARD.forward)}
             </button>
           </div>
         </div>
@@ -145,10 +156,9 @@ export function LevelUpWizard({ character, onClose }: Props) {
 
       {phase === 'hp' && (
         <div className="col" style={{ gap: 16 }}>
-          <div className="section-title">Новые хиты</div>
+          <div className="section-title">{t(T_WIZARD.newHp)}</div>
           <p className="muted small">
-            Бросьте кость хитов d{preview.hitDie} — или возьмите надёжное среднее ({preview.avgHp}).
-            Модификатор Телосложения добавится автоматически.
+            {t(T_WIZARD.hpChoiceHint, { die: preview.hitDie, avg: preview.avgHp })}
           </p>
           <div className="row-wrap" style={{ gap: 14, justifyContent: 'center' }}>
             <button
@@ -158,14 +168,14 @@ export function LevelUpWizard({ character, onClose }: Props) {
             >
               <div className={rolling ? 'rolling' : ''} style={{ fontSize: 44 }}>🎲</div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, marginTop: 6 }}>
-                Бросить d{preview.hitDie}
+                {t(T_WIZARD.rollHitDieBtn, { n: preview.hitDie })}
               </div>
               {hpMode === 'roll' && hpGain !== null && !rolling && (
                 <div className="result-pop gold glow-gold" style={{ fontSize: 34, fontFamily: 'var(--font-display)', fontWeight: 700 }}>
                   {hpGain}
                 </div>
               )}
-              <div className="small faint">риск и удача!</div>
+              <div className="small faint">{t(T_WIZARD.riskLuck)}</div>
             </button>
             <button
               className={`panel card-clickable center ${hpMode === 'avg' ? 'panel-ornate' : ''}`}
@@ -178,9 +188,9 @@ export function LevelUpWizard({ character, onClose }: Props) {
             >
               <div style={{ fontSize: 44 }}>⚖️</div>
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, marginTop: 6 }}>
-                Среднее: {preview.avgHp}
+                {t(T_WIZARD.average, { n: preview.avgHp })}
               </div>
-              <div className="small faint">спокойный путь</div>
+              <div className="small faint">{t(T_WIZARD.calmPath)}</div>
             </button>
           </div>
           <div className="row" style={{ justifyContent: 'flex-end' }}>
@@ -194,7 +204,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
                 goNextFrom('hp');
               }}
             >
-              Дальше →
+              {t(T_WIZARD.nextBtn)}
             </button>
           </div>
         </div>
@@ -202,7 +212,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
 
       {phase === 'subclass' && (
         <div className="col" style={{ gap: 14 }}>
-          <div className="section-title">{classDef.subclassLabel}: время выбора!</div>
+          <div className="section-title">{t(T_WIZARD.subclassTime, { label: classDef.subclassLabel })}</div>
           <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 260px), 1fr))' }}>
             {classDef.subclasses.map((sub) => (
               <div
@@ -223,7 +233,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
           </div>
           <div className="row" style={{ justifyContent: 'flex-end' }}>
             <button className="btn btn-primary" disabled={!subclassId} onClick={() => goNextFrom('subclass')}>
-              Дальше →
+              {t(T_WIZARD.nextBtn)}
             </button>
           </div>
         </div>
@@ -231,65 +241,65 @@ export function LevelUpWizard({ character, onClose }: Props) {
 
       {phase === 'asi' && (
         <div className="col" style={{ gap: 14 }}>
-          <div className="section-title">Рост героя: характеристики или черта</div>
+          <div className="section-title">{t(T_WIZARD.heroGrowth)}</div>
           <div className="col" style={{ gap: 10 }}>
             <label className="row" style={{ gap: 8 }}>
               <input type="radio" checked={asiMode === 'asi'} onChange={() => setAsiMode('asi')} />
-              <span>+1 к двум характеристикам</span>
+              <span>{t(T_WIZARD.asiPlusOneTwo)}</span>
             </label>
             {asiMode === 'asi' && (
               <div className="row-wrap" style={{ gap: 10, paddingLeft: 26 }}>
                 <select value={asiFirst} onChange={(e) => setAsiFirst(e.target.value as Ability)}>
                   {ABILITIES.map((a) => (
-                    <option key={a} value={a}>{ABILITY_NAMES[a]} ({character.abilities[a]})</option>
+                    <option key={a} value={a}>{abilityNames[a]} ({character.abilities[a]})</option>
                   ))}
                 </select>
                 <select value={asiSecond} onChange={(e) => setAsiSecond(e.target.value as Ability)}>
                   {ABILITIES.filter((a) => a !== asiFirst).map((a) => (
-                    <option key={a} value={a}>{ABILITY_NAMES[a]} ({character.abilities[a]})</option>
+                    <option key={a} value={a}>{abilityNames[a]} ({character.abilities[a]})</option>
                   ))}
                 </select>
               </div>
             )}
             <label className="row" style={{ gap: 8 }}>
               <input type="radio" checked={asiMode === 'asi2'} onChange={() => setAsiMode('asi2')} />
-              <span>+2 к одной характеристике</span>
+              <span>{t(T_WIZARD.asiPlusTwo)}</span>
             </label>
             {asiMode === 'asi2' && (
               <div style={{ paddingLeft: 26 }}>
                 <select value={asiFirst} onChange={(e) => setAsiFirst(e.target.value as Ability)}>
                   {ABILITIES.map((a) => (
-                    <option key={a} value={a}>{ABILITY_NAMES[a]} ({character.abilities[a]})</option>
+                    <option key={a} value={a}>{abilityNames[a]} ({character.abilities[a]})</option>
                   ))}
                 </select>
               </div>
             )}
             <label className="row" style={{ gap: 8 }}>
               <input type="radio" checked={asiMode === 'feat'} onChange={() => setAsiMode('feat')} />
-              <span>Взять черту</span>
+              <span>{t(T_WIZARD.asiFeat)}</span>
             </label>
             {asiMode === 'feat' && (
               <div className="col" style={{ gap: 8, paddingLeft: 26 }}>
                 <select value={featId} onChange={(e) => setFeatId(e.target.value)}>
-                  {FEATS.filter((f) => f.category !== 'fightingStyle' && f.id !== 'asi' && !character.featIds.includes(f.id)).map((f) => (
+                  {feats.filter((f) => f.category !== 'fightingStyle' && f.id !== 'asi' && !character.featIds.includes(f.id)).map((f) => (
                     <option key={f.id} value={f.id}>{f.name}</option>
                   ))}
                 </select>
-                <div className="small muted">{FEATS_BY_ID[featId]?.description}</div>
+                <div className="small muted">{featsById[featId]?.description}</div>
               </div>
             )}
           </div>
           <div className="row" style={{ justifyContent: 'flex-end' }}>
-            <button className="btn btn-primary" onClick={() => goNextFrom('asi')}>Дальше →</button>
+            <button className="btn btn-primary" onClick={() => goNextFrom('asi')}>{t(T_WIZARD.nextBtn)}</button>
           </div>
         </div>
       )}
 
       {phase === 'style' && (
         <div className="col" style={{ gap: 14 }}>
-          <div className="section-title">Новый боевой стиль</div>
+          <div className="section-title">{t(T_WIZARD.newStyle)}</div>
           <div className="col" style={{ gap: 8 }}>
-            {FIGHTING_STYLES.map((f) => (
+            {fightingStyles.map((f) => (
               <label key={f.id} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
                 <input type="radio" checked={styleId === f.id} onChange={() => setStyleId(f.id)} style={{ marginTop: 4 }} />
                 <span><b>{f.name}.</b> <span className="muted small">{f.description}</span></span>
@@ -298,7 +308,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
           </div>
           <div className="row" style={{ justifyContent: 'flex-end' }}>
             <button className="btn btn-primary" disabled={!styleId} onClick={() => goNextFrom('style')}>
-              Завершить →
+              {t(T_WIZARD.finishArrow)}
             </button>
           </div>
         </div>
@@ -310,7 +320,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
             <div className="script gold" style={{ fontSize: 30 }}>{character.name}</div>
             <div className="levelup-number">{preview.newLevel}</div>
             <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, color: 'var(--parchment)', letterSpacing: '0.1em' }}>
-              УРОВЕНЬ ВЗЯТ!
+              {t(T_WIZARD.levelTaken)}
             </div>
           </div>
           <div className="panel" style={{ padding: 16, textAlign: 'left', maxWidth: 480, margin: '0 auto' }}>
@@ -321,7 +331,7 @@ export function LevelUpWizard({ character, onClose }: Props) {
             ))}
           </div>
           <button className="btn btn-primary btn-lg" onClick={onClose}>
-            ⚔️ В приключение!
+            {t(T_WIZARD.toAdventure)}
           </button>
         </div>
       )}

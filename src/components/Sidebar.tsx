@@ -3,18 +3,22 @@ import type { ReactElement } from 'react';
 import { useStore } from '../store/store';
 import type { ViewId } from '../store/store';
 import { downloadBackup, importBackupFile } from '../store/backup';
+import { LANGS, LANG_LABELS, useLang } from '../i18n/lang';
+import { useT } from '../i18n/tr';
+import type { Tri } from '../i18n/tr';
+import { T_COMMON } from '../i18n/ui/common';
 import {
   BookIcon, CampfireIcon, CrownIcon, D20Icon, HeroIcon, ScrollIcon,
 } from '../svg/icons';
 import { sfx } from '../audio/sound';
 
-const NAV: { id: ViewId; label: string; icon: (props: { size?: number; className?: string }) => ReactElement }[] = [
-  { id: 'home', label: 'Главная', icon: CampfireIcon },
-  { id: 'characters', label: 'Герои', icon: HeroIcon },
-  { id: 'dice', label: 'Кубики', icon: D20Icon },
-  { id: 'master', label: 'Мастер', icon: CrownIcon },
-  { id: 'journal', label: 'Журнал', icon: BookIcon },
-  { id: 'library', label: 'Справочник', icon: ScrollIcon },
+const NAV: { id: ViewId; label: Tri; icon: (props: { size?: number; className?: string }) => ReactElement }[] = [
+  { id: 'home', label: T_COMMON.navHome, icon: CampfireIcon },
+  { id: 'characters', label: T_COMMON.navCharacters, icon: HeroIcon },
+  { id: 'dice', label: T_COMMON.navDice, icon: D20Icon },
+  { id: 'master', label: T_COMMON.navMaster, icon: CrownIcon },
+  { id: 'journal', label: T_COMMON.navJournal, icon: BookIcon },
+  { id: 'library', label: T_COMMON.navLibrary, icon: ScrollIcon },
 ];
 
 export function Sidebar() {
@@ -22,6 +26,8 @@ export function Sidebar() {
   const setView = useStore((s) => s.setView);
   const soundOn = useStore((s) => s.settings.soundOn);
   const updateSettings = useStore((s) => s.updateSettings);
+  const lang = useLang();
+  const t = useT();
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -29,7 +35,7 @@ export function Sidebar() {
       <div className="sidebar-brand">
         <D20Icon size={34} className="gold" />
         <div>
-          <div className="sidebar-brand-name">Летопись Героев</div>
+          <div className="sidebar-brand-name">{t(T_COMMON.brand)}</div>
           <div className="sidebar-brand-sub">D&D 2024</div>
         </div>
       </div>
@@ -46,7 +52,7 @@ export function Sidebar() {
             }}
           >
             <Icon size={22} className="nav-icon" />
-            <span className="nav-label">{item.label}</span>
+            <span className="nav-label">{t(item.label)}</span>
           </button>
         );
       })}
@@ -54,25 +60,36 @@ export function Sidebar() {
       <div className="grow" />
 
       <div className="sidebar-footer col" style={{ gap: 6 }}>
+        <div className="lang-row" title={t(T_COMMON.language)}>
+          {LANGS.map((code) => (
+            <button
+              key={code}
+              className={`lang-btn${lang === code ? ' active' : ''}`}
+              onClick={() => updateSettings({ lang: code })}
+            >
+              {LANG_LABELS[code]}
+            </button>
+          ))}
+        </div>
         <button
           className="nav-btn"
           onClick={() => updateSettings({ soundOn: !soundOn })}
-          title="Звуки включаются и выключаются здесь"
+          title={t(T_COMMON.soundHint)}
         >
           <span style={{ fontSize: 19, width: 22, textAlign: 'center' }}>{soundOn ? '🔔' : '🔕'}</span>
-          {soundOn ? 'Звук вкл.' : 'Звук выкл.'}
+          {soundOn ? t(T_COMMON.soundOn) : t(T_COMMON.soundOff)}
         </button>
-        <button className="nav-btn" onClick={downloadBackup} title="Скачать резервную копию всех данных">
+        <button className="nav-btn" onClick={downloadBackup} title={t(T_COMMON.saveBackupHint)}>
           <span style={{ fontSize: 19, width: 22, textAlign: 'center' }}>💾</span>
-          Сохранить копию
+          {t(T_COMMON.saveBackup)}
         </button>
         <button
           className="nav-btn"
           onClick={() => fileRef.current?.click()}
-          title="Загрузить данные из файла резервной копии"
+          title={t(T_COMMON.loadBackupHint)}
         >
           <span style={{ fontSize: 19, width: 22, textAlign: 'center' }}>📂</span>
-          Загрузить копию
+          {t(T_COMMON.loadBackup)}
         </button>
         <input
           ref={fileRef}

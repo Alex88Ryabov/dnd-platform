@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { DieRoll } from '../model/types';
 import { formatModifier } from '../engine/dice';
+import { useT } from '../i18n/tr';
+import { T_DICE } from '../i18n/ui/dice';
 import { sfx } from '../audio/sound';
 
 export interface RollDisplay {
@@ -45,6 +47,7 @@ const D20_FACE = (
 export function RollOverlay() {
   const [roll, setRoll] = useState<RollDisplay | null>(null);
   const [phase, setPhase] = useState<'rolling' | 'result'>('rolling');
+  const t = useT();
 
   useEffect(() => {
     trigger = (next) => {
@@ -81,8 +84,8 @@ export function RollOverlay() {
 
   const verdict = roll.dc !== undefined && phase === 'result'
     ? roll.success
-      ? { text: 'УСПЕХ!', color: 'var(--success)' }
-      : { text: 'ПРОВАЛ', color: 'var(--danger)' }
+      ? { text: t(T_DICE.success), color: 'var(--success)' }
+      : { text: t(T_DICE.fail), color: 'var(--danger)' }
     : null;
 
   return (
@@ -136,7 +139,7 @@ export function RollOverlay() {
             </div>
             {roll.kind === 'd20' && roll.d20s && roll.d20s.length > 1 && (
               <div className="small muted">
-                кости: {roll.d20s.join(' и ')} → взято {roll.kept}
+                {t(T_DICE.diceKept, { list: roll.d20s.join(t(T_DICE.and)), kept: roll.kept ?? '' })}
               </div>
             )}
             {roll.kind === 'formula' && roll.detail && (
@@ -150,12 +153,12 @@ export function RollOverlay() {
             )}
             {roll.crit === 'success' && (
               <div className="gold glow-gold" style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700 }}>
-                ✨ Критический успех! ✨
+                {t(T_DICE.critSuccess)}
               </div>
             )}
             {roll.crit === 'fail' && (
               <div style={{ color: 'var(--danger)', fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 700 }}>
-                Критический провал…
+                {t(T_DICE.critFail)}
               </div>
             )}
             {verdict && (
@@ -171,7 +174,7 @@ export function RollOverlay() {
                 }}
               >
                 {verdict.text}
-                <span className="muted" style={{ fontSize: 15, marginLeft: 8 }}>СЛ {roll.dc}</span>
+                <span className="muted" style={{ fontSize: 15, marginLeft: 8 }}>{t(T_DICE.dc, { dc: roll.dc ?? '' })}</span>
               </div>
             )}
           </div>

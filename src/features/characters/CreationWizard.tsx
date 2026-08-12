@@ -1,13 +1,17 @@
 import { useMemo, useState } from 'react';
 import type { Ability, ClassId, SkillId, SpeciesId } from '../../model/types';
-import { ABILITIES, ABILITY_NAMES, ABILITY_SHORT, ALIGNMENTS, PORTRAIT_ICONS, SIZE_NAMES, SKILLS } from '../../data/core';
-import { CLASSES } from '../../data/classes';
-import { CLASSES_BY_ID } from '../../data/classes';
-import { SPECIES } from '../../data/species';
-import { BACKGROUNDS, BACKGROUNDS_BY_ID } from '../../data/backgrounds';
-import { FEATS_BY_ID, FIGHTING_STYLES, ORIGIN_FEATS } from '../../data/feats';
-import { SPELLS } from '../../data/spells';
+import { ABILITIES, ALIGNMENTS, PORTRAIT_ICONS, SKILLS } from '../../data/core';
 import { SCHOOL_ICONS } from '../../data/core';
+import { useCatalog } from '../../i18n/catalog';
+import { useLang } from '../../i18n/lang';
+import { useRules } from '../../i18n/rules';
+import { useT } from '../../i18n/tr';
+import type { Tri } from '../../i18n/tr';
+import { fmtDistance } from '../../i18n/units';
+import { T_WIZARD } from '../../i18n/ui/wizard';
+import { T_COMMON } from '../../i18n/ui/common';
+import { T_FEATURES } from '../../i18n/ui/features';
+import { T_SHEET } from '../../i18n/ui/sheet';
 import { STANDARD_ARRAY, rollAbilityScore } from '../../engine/dice';
 import { abilityMod } from '../../engine/derive';
 import { formatModifier } from '../../engine/dice';
@@ -17,6 +21,7 @@ import { fileToPortraitImage } from '../../components/portraitUtil';
 import { useStore } from '../../store/store';
 import { ClassEmblem } from '../../svg/icons';
 import { Modal } from '../../components/Modal';
+import { NumberField } from '../../components/NumberField';
 import { fireConfetti } from '../../components/Confetti';
 import { toast } from '../../components/Toasts';
 import { sfx } from '../../audio/sound';
@@ -27,10 +32,18 @@ interface Props {
 
 type BonusMode = 'two-one' | 'all-one';
 
-const STEPS = ['Имя', 'Класс', 'Раса', 'Предыстория', 'Характеристики', 'Навыки', 'Заклинания', 'Финал'];
+const STEPS: Tri[] = [
+  T_WIZARD.stepName, T_WIZARD.stepClass, T_WIZARD.stepSpecies, T_WIZARD.stepBackground,
+  T_WIZARD.stepAbilities, T_WIZARD.stepSkills, T_WIZARD.stepSpells, T_WIZARD.stepFinal,
+];
+const SPELLS_STEP = 6;
 
 export function CreationWizard({ onClose }: Props) {
   const addCharacter = useStore((s) => s.addCharacter);
+  const lang = useLang();
+  const t = useT();
+  const { classes, classesById, species: speciesList, backgrounds, backgroundsById, featsById, originFeats, fightingStyles, spells } = useCatalog();
+  const { abilityNames, abilityShort, skillNames, sizeNames, alignments } = useRules();
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
@@ -67,8 +80,8 @@ export function CreationWizard({ onClose }: Props) {
   const [alignment, setAlignment] = useState('Нейтрально-добрый');
   const [backstory, setBackstory] = useState('');
 
-  const classDef = classId ? CLASSES_BY_ID[classId] : null;
-  const background = backgroundId ? BACKGROUNDS_BY_ID[backgroundId] : null;
+  const classDef = classId ? classesById[classId] : null;
+  const background = backgroundId ? backgroundsById[backgroundId] : null;
   const isCustomBg = backgroundId === 'custom';
   const isCaster = Boolean(classDef?.caster
     && ((classDef.caster.cantripsByLevel[startLevel] ?? 0) > 0 || (classDef.caster.preparedByLevel[startLevel] ?? 0) > 0));
@@ -189,7 +202,7 @@ export function CreationWizard({ onClose }: Props) {
     addCharacter(char);
     fireConfetti();
     sfx.levelUp();
-    toast('Герой создан!', `${char.name} присоединяется к отряду`, '🎉');
+    toast(t(T_WIZARD.heroCreated), t(T_WIZARD.joinsParty, { name: char.name }), '🎉');
     onClose();
   };
 
@@ -199,73 +212,69 @@ export function CreationWizard({ onClose }: Props) {
     }
     const maxCircle = Math.max(1, maxSpellCircle(classId, startLevel));
     return {
-      cantripList: SPELLS.filter((s) => s.level === 0 && s.classes.includes(classId)),
-      leveledList: SPELLS
+      cantripList: spells.filter((s) => s.level === 0 && s.classes.includes(classId)),
+      leveledList: spells
         .filter((s) => s.level > 0 && s.level <= maxCircle && s.classes.includes(classId))
-        .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, 'ru')),
+        .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, lang)),
       maxCircle,
     };
-  }, [classId, startLevel]);
+  }, [classId, startLevel, spells, lang]);
 
   // шаг «Заклинания» пропускаем для немагических классов
-  const visibleSteps = isCaster ? STEPS : STEPS.filter((s) => s !== 'Заклинания');
-  const currentTitle = STEPS[step];
+  const visibleStepIndexes = STEPS.map((_, i) => i).filter((i) => isCaster || i !== SPELLS_STEP);
   const goNext = () => {
     let next = step + 1;
-    if (next === 6 && !isCaster) {
-      next = 7;
+    if (next === SPELLS_STEP && !isCaster) {
+      next = SPELLS_STEP + 1;
     }
     setStep(next);
     sfx.click();
   };
   const goBack = () => {
     let prev = step - 1;
-    if (prev === 6 && !isCaster) {
-      prev = 5;
+    if (prev === SPELLS_STEP && !isCaster) {
+      prev = SPELLS_STEP - 1;
     }
     setStep(prev);
   };
 
   return (
-    <Modal title={`Новый герой — ${currentTitle}`} onClose={onClose} xl>
+    <Modal title={t(T_WIZARD.title, { step: t(STEPS[step]) })} onClose={onClose} xl>
       <div className="row-wrap" style={{ gap: 6, marginBottom: 18 }}>
-        {visibleSteps.map((s) => {
-          const stepIndex = STEPS.indexOf(s);
-          return (
-            <span
-              key={s}
-              className={`chip${stepIndex === step ? ' chip-active' : ''}`}
-              style={stepIndex < step ? { color: 'var(--success)', borderColor: 'rgba(111,191,99,0.4)' } : undefined}
-            >
-              {stepIndex < step ? '✓ ' : ''}{s}
-            </span>
-          );
-        })}
+        {visibleStepIndexes.map((stepIndex) => (
+          <span
+            key={stepIndex}
+            className={`chip${stepIndex === step ? ' chip-active' : ''}`}
+            style={stepIndex < step ? { color: 'var(--success)', borderColor: 'rgba(111,191,99,0.4)' } : undefined}
+          >
+            {stepIndex < step ? '✓ ' : ''}{t(STEPS[stepIndex])}
+          </span>
+        ))}
       </div>
 
       {step === 0 && (
         <div className="col" style={{ gap: 16 }}>
           <div className="grid-2">
             <label className="col" style={{ gap: 6 }}>
-              <span className="muted small">Имя героя</span>
+              <span className="muted small">{t(T_WIZARD.heroName)}</span>
               <input
                 autoFocus
                 value={name}
-                placeholder="Например: Ария Огненное Сердце"
+                placeholder={t(T_WIZARD.heroNamePh)}
                 onChange={(e) => setName(e.target.value)}
               />
             </label>
             <label className="col" style={{ gap: 6 }}>
-              <span className="muted small">Имя игрока (кто играет этим героем)</span>
+              <span className="muted small">{t(T_WIZARD.playerName)}</span>
               <input
                 value={playerName}
-                placeholder="Например: Маша"
+                placeholder={t(T_WIZARD.playerNamePh)}
                 onChange={(e) => setPlayerName(e.target.value)}
               />
             </label>
           </div>
           <div>
-            <div className="muted small" style={{ marginBottom: 8 }}>Знак героя</div>
+            <div className="muted small" style={{ marginBottom: 8 }}>{t(T_WIZARD.heroSign)}</div>
             <div className="row-wrap" style={{ gap: 6 }}>
               {PORTRAIT_ICONS.map((p) => (
                 <button
@@ -287,7 +296,7 @@ export function CreationWizard({ onClose }: Props) {
             </div>
           </div>
           <label className="col" style={{ gap: 6, maxWidth: 420 }}>
-            <span className="muted small">Цвет герба</span>
+            <span className="muted small">{t(T_WIZARD.crestColor)}</span>
             <input
               type="range"
               min={0}
@@ -306,7 +315,7 @@ export function CreationWizard({ onClose }: Props) {
           </label>
           <div className="row-wrap" style={{ gap: 10 }}>
             <label className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-              📷 Загрузить свою картинку
+              {t(T_WIZARD.uploadImage)}
               <input
                 type="file"
                 accept="image/*"
@@ -317,7 +326,7 @@ export function CreationWizard({ onClose }: Props) {
                     try {
                       setImage(await fileToPortraitImage(file));
                     } catch {
-                      toast('Не получилось', 'Не удалось прочитать картинку', '⚠️');
+                      toast(t(T_WIZARD.imageFail), t(T_WIZARD.imageFailText), '⚠️');
                     }
                   }
                   e.target.value = '';
@@ -326,17 +335,17 @@ export function CreationWizard({ onClose }: Props) {
             </label>
             {image && (
               <button className="btn btn-ghost btn-sm" onClick={() => setImage(undefined)}>
-                ✕ Убрать картинку
+                {t(T_WIZARD.removeImage)}
               </button>
             )}
           </div>
           <div className="row" style={{ gap: 12 }}>
             <PortraitBadge portrait={{ icon, hue, image }} size={64} radius={16} />
-            <div className="script gold" style={{ fontSize: 26 }}>{name || 'Будущая легенда'}</div>
+            <div className="script gold" style={{ fontSize: 26 }}>{name || t(T_WIZARD.futureLegend)}</div>
           </div>
           <div className="panel" style={{ padding: 14, maxWidth: 480 }}>
             <div className="row-wrap" style={{ gap: 10, alignItems: 'center' }}>
-              <span className="muted small">Стартовый уровень:</span>
+              <span className="muted small">{t(T_WIZARD.startLevel)}</span>
               <select value={startLevel} onChange={(e) => setStartLevel(Number(e.target.value))}>
                 {Array.from({ length: 20 }, (_, i) => i + 1).map((l) => (
                   <option key={l} value={l}>{l}</option>
@@ -344,8 +353,7 @@ export function CreationWizard({ onClose }: Props) {
               </select>
             </div>
             <div className="small faint" style={{ marginTop: 6 }}>
-              1 — для нового героя. Выше — чтобы перенести уже существующего персонажа:
-              платформа даст нужные хиты, заклинания и выбор подкласса.
+              {t(T_WIZARD.startLevelHint)}
             </div>
           </div>
         </div>
@@ -353,7 +361,7 @@ export function CreationWizard({ onClose }: Props) {
 
       {step === 1 && (
         <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 215px), 1fr))' }}>
-          {CLASSES.map((c) => (
+          {classes.map((c) => (
             <div
               key={c.id}
               className={`panel card-clickable${classId === c.id ? ' panel-ornate' : ''}`}
@@ -380,8 +388,8 @@ export function CreationWizard({ onClose }: Props) {
               </div>
               <div className="small muted" style={{ marginTop: 8 }}>{c.description}</div>
               <div className="row-wrap" style={{ marginTop: 8, gap: 5 }}>
-                <span className="chip">к. хитов d{c.hitDie}</span>
-                <span className="chip">{c.primaryAbilities.map((a) => ABILITY_SHORT[a]).join(' / ')}</span>
+                <span className="chip">{t(T_WIZARD.hitDieChip, { n: c.hitDie })}</span>
+                <span className="chip">{c.primaryAbilities.map((a) => abilityShort[a]).join(' / ')}</span>
               </div>
             </div>
           ))}
@@ -390,18 +398,18 @@ export function CreationWizard({ onClose }: Props) {
 
       {step === 2 && (() => {
         const query = speciesSearch.trim().toLowerCase();
-        const list = SPECIES
+        const list = speciesList
           .filter((s) => (query.length > 0
             ? s.name.toLowerCase().includes(query) || s.nameEn.toLowerCase().includes(query)
             : speciesFilter === 'core' ? s.core : true))
-          .sort((a, b) => Number(Boolean(b.core)) - Number(Boolean(a.core)) || a.name.localeCompare(b.name, 'ru'));
-        const selected = speciesId ? SPECIES.find((s) => s.id === speciesId) : null;
+          .sort((a, b) => Number(Boolean(b.core)) - Number(Boolean(a.core)) || a.name.localeCompare(b.name, lang));
+        const selected = speciesId ? speciesList.find((s) => s.id === speciesId) : null;
         return (
           <div className="col" style={{ gap: 12 }}>
             <div className="row-wrap" style={{ gap: 10 }}>
               <input
                 style={{ flex: 1, minWidth: 200 }}
-                placeholder="🔍 Найти расу (например: табакси, дракон, фея)…"
+                placeholder={t(T_WIZARD.searchSpecies)}
                 value={speciesSearch}
                 onChange={(e) => setSpeciesSearch(e.target.value)}
               />
@@ -413,7 +421,7 @@ export function CreationWizard({ onClose }: Props) {
                     setSpeciesSearch('');
                   }}
                 >
-                  Основные (10)
+                  {t(T_WIZARD.coreSpecies)}
                 </button>
                 <button
                   className={`chip chip-clickable${speciesFilter === 'all' && !query ? ' chip-active' : ''}`}
@@ -422,7 +430,7 @@ export function CreationWizard({ onClose }: Props) {
                     setSpeciesSearch('');
                   }}
                 >
-                  Все расы ({SPECIES.length})
+                  {t(T_WIZARD.allSpecies, { n: speciesList.length })}
                 </button>
               </div>
             </div>
@@ -453,7 +461,7 @@ export function CreationWizard({ onClose }: Props) {
                   </div>
                 </button>
               ))}
-              {list.length === 0 && <div className="muted small">Ничего не нашлось — попробуйте иначе.</div>}
+              {list.length === 0 && <div className="muted small">{t(T_WIZARD.nothingFound)}</div>}
             </div>
 
             {selected && (
@@ -466,17 +474,17 @@ export function CreationWizard({ onClose }: Props) {
                     </b>
                     <span className="faint small"> ({selected.nameEn})</span>
                     <div className="row-wrap" style={{ gap: 6, marginTop: 6 }}>
-                      <span className="chip">{selected.sizeNote ?? SIZE_NAMES[selected.size]}</span>
-                      <span className="chip">👟 {(selected.speed * 0.3).toFixed(selected.speed % 10 === 5 ? 1 : 0)} м</span>
-                      {selected.darkvision && <span className="chip">👁️ Тёмное зрение {selected.darkvision * 0.3} м</span>}
+                      <span className="chip">{selected.sizeNote ?? sizeNames[selected.size]}</span>
+                      <span className="chip">👟 {fmtDistance(selected.speed, lang)}</span>
+                      {selected.darkvision && <span className="chip">{t(T_WIZARD.darkvisionChip, { dist: fmtDistance(selected.darkvision, lang) })}</span>}
                     </div>
                   </div>
                 </div>
                 <p className="muted small" style={{ margin: '10px 0' }}>{selected.description}</p>
                 <div className="col" style={{ gap: 6 }}>
-                  {selected.traits.map((t) => (
-                    <div key={t.name} className="small">
-                      <span className="gold">◆ {t.name}.</span> <span className="muted">{t.description}</span>
+                  {selected.traits.map((trait) => (
+                    <div key={trait.name} className="small">
+                      <span className="gold">◆ {trait.name}.</span> <span className="muted">{trait.description}</span>
                     </div>
                   ))}
                 </div>
@@ -489,7 +497,7 @@ export function CreationWizard({ onClose }: Props) {
       {step === 3 && (
         <div className="col" style={{ gap: 16 }}>
           <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 230px), 1fr))' }}>
-            {BACKGROUNDS.map((b) => (
+            {backgrounds.map((b) => (
               <div
                 key={b.id}
                 className="panel card-clickable"
@@ -503,13 +511,13 @@ export function CreationWizard({ onClose }: Props) {
                 <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: 'var(--parchment)' }}>{b.name}</div>
                 <div className="small muted" style={{ margin: '5px 0' }}>{b.description}</div>
                 <div className="small">
-                  <span className="gold">Навыки:</span> <span className="muted">{b.skills.map((sk) => SKILLS.find((x) => x.id === sk)?.name).join(', ')}</span>
+                  <span className="gold">{t(T_WIZARD.bgSkillsLabel)}</span> <span className="muted">{b.skills.map((sk) => skillNames[sk]).join(', ')}</span>
                 </div>
                 <div className="small">
-                  <span className="gold">Черта:</span> <span className="muted">{FEATS_BY_ID[b.featId]?.name}</span>
+                  <span className="gold">{t(T_WIZARD.bgFeatLabel)}</span> <span className="muted">{featsById[b.featId]?.name}</span>
                 </div>
                 <div className="small">
-                  <span className="gold">Характеристики:</span> <span className="muted">{b.abilities.map((a) => ABILITY_NAMES[a]).join(', ')}</span>
+                  <span className="gold">{t(T_WIZARD.bgAbilitiesLabel)}</span> <span className="muted">{b.abilities.map((a) => abilityNames[a]).join(', ')}</span>
                 </div>
               </div>
             ))}
@@ -528,28 +536,27 @@ export function CreationWizard({ onClose }: Props) {
               }}
             >
               <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: 'var(--gold-bright)' }}>
-                ✍️ Своя предыстория
+                {t(T_WIZARD.customBg)}
               </div>
               <div className="small muted" style={{ margin: '5px 0' }}>
-                Придумайте собственную: любое название, любые два навыка, черта на выбор
-                и бонусы +2/+1 к любым характеристикам.
+                {t(T_WIZARD.customBgHint)}
               </div>
             </div>
           </div>
 
           {isCustomBg && (
             <div className="panel" style={{ padding: 14 }}>
-              <div className="section-title">Ваша предыстория</div>
+              <div className="section-title">{t(T_WIZARD.yourBg)}</div>
               <div className="col" style={{ gap: 10 }}>
                 <input
-                  placeholder="Название (например: Юный драконоборец, Ученица ведьмы...)"
+                  placeholder={t(T_WIZARD.customBgNamePh)}
                   value={customBgName}
                   onChange={(e) => setCustomBgName(e.target.value)}
                   style={{ maxWidth: 420 }}
                 />
                 <div>
                   <div className="muted small" style={{ marginBottom: 6 }}>
-                    Два навыка предыстории (выбрано {customBgSkills.length} из 2):
+                    {t(T_WIZARD.twoBgSkills, { n: customBgSkills.length })}
                   </div>
                   <div className="row-wrap" style={{ gap: 6 }}>
                     {SKILLS.map((skill) => {
@@ -566,23 +573,23 @@ export function CreationWizard({ onClose }: Props) {
                             }
                           }}
                         >
-                          {skill.name}
+                          {skillNames[skill.id]}
                         </button>
                       );
                     })}
                   </div>
                 </div>
                 <div className="row-wrap" style={{ gap: 10 }}>
-                  <span className="muted small">Черта происхождения:</span>
+                  <span className="muted small">{t(T_WIZARD.originFeat)}</span>
                   <select value={customBgFeatId} onChange={(e) => setCustomBgFeatId(e.target.value)}>
-                    {ORIGIN_FEATS.map((f) => (
+                    {originFeats.map((f) => (
                       <option key={f.id} value={f.id}>{f.name}</option>
                     ))}
                   </select>
                 </div>
-                <div className="small muted">{FEATS_BY_ID[customBgFeatId]?.description}</div>
+                <div className="small muted">{featsById[customBgFeatId]?.description}</div>
                 <input
-                  placeholder="Инструмент (необязательно, например: Столярные инструменты)"
+                  placeholder={t(T_WIZARD.toolOptional)}
                   value={customBgTool}
                   onChange={(e) => setCustomBgTool(e.target.value)}
                   style={{ maxWidth: 420 }}
@@ -593,7 +600,7 @@ export function CreationWizard({ onClose }: Props) {
 
           {(background || isCustomBg) && (
             <div className="panel" style={{ padding: 14 }}>
-              <div className="section-title">Бонусы характеристик предыстории</div>
+              <div className="section-title">{t(T_WIZARD.bgBonuses)}</div>
               <div className="row-wrap" style={{ gap: 14 }}>
                 <label className="row" style={{ gap: 6 }}>
                   <input
@@ -601,7 +608,7 @@ export function CreationWizard({ onClose }: Props) {
                     checked={bonusMode === 'two-one' || isCustomBg}
                     onChange={() => setBonusMode('two-one')}
                   />
-                  +2 и +1
+                  {t(T_WIZARD.plusTwoOne)}
                 </label>
                 {!isCustomBg && (
                   <label className="row" style={{ gap: 6 }}>
@@ -610,27 +617,27 @@ export function CreationWizard({ onClose }: Props) {
                       checked={bonusMode === 'all-one'}
                       onChange={() => setBonusMode('all-one')}
                     />
-                    +1 ко всем трём
+                    {t(T_WIZARD.plusOneAll)}
                   </label>
                 )}
               </div>
               {(bonusMode === 'two-one' || isCustomBg) && (
                 <div className="row-wrap" style={{ marginTop: 10, gap: 12 }}>
                   <label className="row" style={{ gap: 8 }}>
-                    <span className="muted small">+2 к</span>
+                    <span className="muted small">{t(T_WIZARD.plusTwoTo)}</span>
                     <select value={bonusTwo ?? ''} onChange={(e) => setBonusTwo((e.target.value || null) as Ability | null)}>
                       <option value="">—</option>
                       {bonusSource.map((a) => (
-                        <option key={a} value={a}>{ABILITY_NAMES[a]}</option>
+                        <option key={a} value={a}>{abilityNames[a]}</option>
                       ))}
                     </select>
                   </label>
                   <label className="row" style={{ gap: 8 }}>
-                    <span className="muted small">+1 к</span>
+                    <span className="muted small">{t(T_WIZARD.plusOneTo)}</span>
                     <select value={bonusOne ?? ''} onChange={(e) => setBonusOne((e.target.value || null) as Ability | null)}>
                       <option value="">—</option>
                       {bonusSource.filter((a) => a !== bonusTwo).map((a) => (
-                        <option key={a} value={a}>{ABILITY_NAMES[a]}</option>
+                        <option key={a} value={a}>{abilityNames[a]}</option>
                       ))}
                     </select>
                   </label>
@@ -641,14 +648,14 @@ export function CreationWizard({ onClose }: Props) {
 
           {speciesId === 'human' && (
             <div className="panel" style={{ padding: 14 }}>
-              <div className="section-title">Человек: дополнительная черта происхождения</div>
+              <div className="section-title">{t(T_WIZARD.humanFeat)}</div>
               <select value={extraFeatId} onChange={(e) => setExtraFeatId(e.target.value)}>
-                {ORIGIN_FEATS.map((f) => (
+                {originFeats.map((f) => (
                   <option key={f.id} value={f.id}>{f.name}</option>
                 ))}
               </select>
               <div className="small muted" style={{ marginTop: 8 }}>
-                {FEATS_BY_ID[extraFeatId]?.description}
+                {featsById[extraFeatId]?.description}
               </div>
             </div>
           )}
@@ -659,9 +666,7 @@ export function CreationWizard({ onClose }: Props) {
         <div className="col" style={{ gap: 14 }}>
           <div className="row-wrap spread">
             <div className="muted small">
-              {abilityMode === 'manual'
-                ? 'Впишите значения характеристик как есть (например, у переносимого героя). Бонусы предыстории добавятся сверху.'
-                : 'Раздайте значения из набора по характеристикам. Бонусы предыстории добавятся сверху.'}
+              {abilityMode === 'manual' ? t(T_WIZARD.abilitiesHintManual) : t(T_WIZARD.abilitiesHintPool)}
             </div>
             <div className="row-wrap" style={{ gap: 8 }}>
               <button
@@ -673,7 +678,7 @@ export function CreationWizard({ onClose }: Props) {
                   setAssigned({ str: null, dex: null, con: null, int: null, wis: null, cha: null });
                 }}
               >
-                Стандартный набор
+                {t(T_WIZARD.standardArray)}
               </button>
               <button
                 className="btn btn-primary btn-sm"
@@ -682,11 +687,11 @@ export function CreationWizard({ onClose }: Props) {
                   rollPool();
                 }}
               >
-                🎲 Бросить 4d6
+                {t(T_WIZARD.roll4d6)}
               </button>
               <button
                 className={`btn btn-sm ${abilityMode === 'manual' ? 'btn-primary' : 'btn-ghost'}`}
-                title="Ввести любые числа — удобно для переноса готового героя"
+                title={t(T_WIZARD.manualHint)}
                 onClick={() => {
                   setAbilityMode('manual');
                   setAssigned({
@@ -699,13 +704,13 @@ export function CreationWizard({ onClose }: Props) {
                   });
                 }}
               >
-                ✏️ Вручную
+                {t(T_WIZARD.manualBtn)}
               </button>
             </div>
           </div>
           {abilityMode === 'pool' && (
             <div className="row-wrap" style={{ gap: 8 }}>
-              <span className="muted small">Набор:</span>
+              <span className="muted small">{t(T_WIZARD.poolLabel)}</span>
               {pool.map((v, i) => {
                 const usedCount = ABILITIES.filter((a) => assigned[a] === v).length;
                 const poolCount = pool.filter((x) => x === v).length;
@@ -718,7 +723,7 @@ export function CreationWizard({ onClose }: Props) {
               })}
             </div>
           )}
-          {abilityMode === 'pool' && rolledInfo && <div className="small faint">Броски: {rolledInfo}</div>}
+          {abilityMode === 'pool' && rolledInfo && <div className="small faint">{t(T_WIZARD.rollsLabel, { s: rolledInfo })}</div>}
           <div className="ability-grid">
             {ABILITIES.map((a) => {
               const taken = ABILITIES.filter((x) => x !== a && assigned[x] !== null).map((x) => assigned[x]) as number[];
@@ -733,16 +738,18 @@ export function CreationWizard({ onClose }: Props) {
               const finalValue = finalAbilities[a];
               return (
                 <div key={a} className="panel" style={{ padding: 12, textAlign: 'center' }}>
-                  <div className="small gold" style={{ fontWeight: 700, letterSpacing: '0.1em' }}>{ABILITY_SHORT[a]}</div>
+                  <div className="small gold" style={{ fontWeight: 700, letterSpacing: '0.1em' }}>{abilityShort[a]}</div>
                   {abilityMode === 'manual' ? (
-                    <input
-                      type="number"
-                      min={1}
-                      max={30}
-                      style={{ width: '100%', marginTop: 6, textAlign: 'center', fontSize: 17 }}
-                      value={assigned[a] ?? 10}
-                      onChange={(e) => setAssigned({ ...assigned, [a]: Math.max(1, Math.min(30, Number(e.target.value) || 10)) })}
-                    />
+                    <div style={{ marginTop: 6, display: 'flex', justifyContent: 'center' }}>
+                      <NumberField
+                        value={assigned[a] ?? 10}
+                        onChange={(v) => setAssigned({ ...assigned, [a]: Math.max(1, Math.min(30, v)) })}
+                        min={1}
+                        max={30}
+                        width={52}
+                        ariaLabel={abilityNames[a]}
+                      />
+                    </div>
                   ) : (
                     <select
                       style={{ width: '100%', marginTop: 6, textAlign: 'center', fontSize: 17 }}
@@ -763,7 +770,7 @@ export function CreationWizard({ onClose }: Props) {
                       </span>
                     )}
                   </div>
-                  {bonuses[a] > 0 && <div className="small" style={{ color: 'var(--success)' }}>+{bonuses[a]} предыстория</div>}
+                  {bonuses[a] > 0 && <div className="small" style={{ color: 'var(--success)' }}>{t(T_WIZARD.bonusFromBg, { n: bonuses[a] })}</div>}
                 </div>
               );
             })}
@@ -774,11 +781,11 @@ export function CreationWizard({ onClose }: Props) {
       {step === 5 && classDef && (
         <div className="col" style={{ gap: 14 }}>
           <div className="muted small">
-            Выберите {classDef.skillChoices.count} навыка класса.
+            {t(T_WIZARD.chooseSkills, { n: classDef.skillChoices.count })}
             {bgSkills.length > 0 && (
               <>
-                {' '}Предыстория уже даёт: <span className="gold">
-                  {bgSkills.map((sk) => SKILLS.find((x) => x.id === sk)?.name).join(', ')}
+                {' '}{t(T_WIZARD.bgGives)} <span className="gold">
+                  {bgSkills.map((sk) => skillNames[sk]).join(', ')}
                 </span>.
               </>
             )}
@@ -803,19 +810,18 @@ export function CreationWizard({ onClose }: Props) {
                     }
                   }}
                 >
-                  {def.name} <span className="faint">({ABILITY_SHORT[def.ability]})</span>
+                  {skillNames[skillId]} <span className="faint">({abilityShort[def.ability]})</span>
                 </button>
               );
             })}
           </div>
-          <div className="small faint">Выбрано {skills.length} из {classDef.skillChoices.count}</div>
+          <div className="small faint">{t(T_WIZARD.chosenOf, { a: skills.length, b: classDef.skillChoices.count })}</div>
 
           {classId === 'rogue' && (
             <div className="panel" style={{ padding: 14 }}>
-              <div className="section-title">Компетентность (два навыка с двойным бонусом)</div>
+              <div className="section-title">{t(T_WIZARD.expertiseTitle)}</div>
               <div className="row-wrap" style={{ gap: 8 }}>
                 {[...new Set([...skills, ...bgSkills])].map((skillId) => {
-                  const def = SKILLS.find((s) => s.id === skillId)!;
                   const active = expertise.includes(skillId);
                   return (
                     <button
@@ -829,7 +835,7 @@ export function CreationWizard({ onClose }: Props) {
                         }
                       }}
                     >
-                      ★ {def.name}
+                      ★ {skillNames[skillId]}
                     </button>
                   );
                 })}
@@ -839,9 +845,9 @@ export function CreationWizard({ onClose }: Props) {
 
           {needsStyle && (
             <div className="panel" style={{ padding: 14 }}>
-              <div className="section-title">Боевой стиль</div>
+              <div className="section-title">{t(T_FEATURES.fightingStyle)}</div>
               <div className="col" style={{ gap: 8 }}>
-                {FIGHTING_STYLES.map((f) => (
+                {fightingStyles.map((f) => (
                   <label key={f.id} className="row" style={{ gap: 8, alignItems: 'flex-start' }}>
                     <input
                       type="radio"
@@ -863,7 +869,7 @@ export function CreationWizard({ onClose }: Props) {
           {(classDef.caster.cantripsByLevel[startLevel] ?? 0) > 0 && (
             <div>
               <div className="section-title">
-                Заговоры — выбрано {cantrips.length} из {classDef.caster.cantripsByLevel[startLevel]}
+                {t(T_WIZARD.cantripsChosen, { a: cantrips.length, b: classDef.caster.cantripsByLevel[startLevel] })}
               </div>
               <div className="col" style={{ gap: 6, maxHeight: 220, overflowY: 'auto', paddingRight: 6 }}>
                 {spellChoices.cantripList.map((spell) => {
@@ -894,8 +900,11 @@ export function CreationWizard({ onClose }: Props) {
           )}
           <div>
             <div className="section-title">
-              Заклинания {spellChoices.maxCircle > 1 ? `1–${spellChoices.maxCircle} круга` : '1 круга'} —
-              выбрано {prepared.length} из {classDef.caster.preparedByLevel[startLevel]}
+              {t(T_WIZARD.spellsChosen, {
+                range: spellChoices.maxCircle > 1 ? `1–${spellChoices.maxCircle}` : '1',
+                a: prepared.length,
+                b: classDef.caster.preparedByLevel[startLevel] ?? 0,
+              })}
             </div>
             <div className="col" style={{ gap: 6, maxHeight: 260, overflowY: 'auto', paddingRight: 6 }}>
               {spellChoices.leveledList.map((spell) => {
@@ -934,7 +943,7 @@ export function CreationWizard({ onClose }: Props) {
           {needsSubclass && (
             <div className="panel" style={{ padding: 14 }}>
               <div className="section-title">
-                {classDef.subclassLabel} (с {classDef.subclassLevel}-го уровня — выберите)
+                {t(T_WIZARD.subclassPick, { label: classDef.subclassLabel, n: classDef.subclassLevel })}
               </div>
               <div className="col" style={{ gap: 8 }}>
                 {classDef.subclasses.map((sub) => (
@@ -955,20 +964,20 @@ export function CreationWizard({ onClose }: Props) {
           )}
           <div className="grid-2">
             <label className="col" style={{ gap: 6 }}>
-              <span className="muted small">Мировоззрение</span>
+              <span className="muted small">{t(T_SHEET.alignment)}</span>
               <select value={alignment} onChange={(e) => setAlignment(e.target.value)}>
-                {ALIGNMENTS.map((a) => (
-                  <option key={a} value={a}>{a}</option>
+                {ALIGNMENTS.map((a, i) => (
+                  <option key={a} value={a}>{alignments[i]}</option>
                 ))}
               </select>
             </label>
           </div>
           <label className="col" style={{ gap: 6 }}>
-            <span className="muted small">История героя (кто он и о чём мечтает)</span>
+            <span className="muted small">{t(T_WIZARD.bioLabel)}</span>
             <textarea
               rows={4}
               value={backstory}
-              placeholder="Например: выросла в кузнице у подножия вулкана, мечтает выковать меч для короля…"
+              placeholder={t(T_WIZARD.bioPh)}
               onChange={(e) => setBackstory(e.target.value)}
             />
           </label>
@@ -978,14 +987,14 @@ export function CreationWizard({ onClose }: Props) {
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--parchment)' }}>{name}</div>
                 <div className="muted small">
-                  {SPECIES.find((s) => s.id === speciesId)?.name} · {classDef.name} {startLevel} ур. · {background?.name ?? customBgName}
+                  {speciesList.find((s) => s.id === speciesId)?.name} · {classDef.name} {t(T_COMMON.levelOf, { n: startLevel })} · {background?.name ?? customBgName}
                 </div>
               </div>
             </div>
             <div className="row-wrap" style={{ marginTop: 12, gap: 6 }}>
               {ABILITIES.map((a) => (
                 <span key={a} className="chip">
-                  {ABILITY_SHORT[a]} {finalAbilities[a]} ({formatModifier(abilityMod(finalAbilities[a]))})
+                  {abilityShort[a]} {finalAbilities[a]} ({formatModifier(abilityMod(finalAbilities[a]))})
                 </span>
               ))}
             </div>
@@ -995,15 +1004,15 @@ export function CreationWizard({ onClose }: Props) {
 
       <div className="row spread" style={{ marginTop: 20 }}>
         <button className="btn btn-ghost" onClick={goBack} disabled={step === 0}>
-          ← Назад
+          {t(T_COMMON.back)}
         </button>
         {step < 7 ? (
           <button className="btn btn-primary" onClick={goNext} disabled={!canNext()}>
-            Дальше →
+            {t(T_WIZARD.nextBtn)}
           </button>
         ) : (
           <button className="btn btn-primary btn-lg pulse-ready" onClick={create} disabled={!canNext()}>
-            🎉 Создать героя!
+            {t(T_WIZARD.createHeroBtn)}
           </button>
         )}
       </div>

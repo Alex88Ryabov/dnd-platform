@@ -1,12 +1,52 @@
 import type { Character } from '../model/types';
 import { buildNewCharacter } from '../engine/creation';
 import { uid } from '../engine/dice';
+import { tr } from '../i18n/tr';
+import type { Tri } from '../i18n/tr';
+
+const SAMPLE_PLAYER: Tri = { ru: 'Пример', uk: 'Приклад', en: 'Sample' };
+
+const TORIN: Record<'name' | 'backstory', Tri> = {
+  name: { ru: 'Торин Каменное Сердце', uk: 'Торін Кам’яне Серце', en: 'Torin Stoneheart' },
+  backstory: {
+    ru: 'Ветеран горной стражи. Ищет легендарный молот своего прадеда, украденный гоблинами.',
+    uk: 'Ветеран гірської варти. Шукає легендарний молот свого прадіда, украдений гоблінами.',
+    en: 'A veteran of the mountain guard. Seeks his great-grandfather’s legendary hammer, stolen by goblins.',
+  },
+};
+
+const LIRAEL: Record<'name' | 'backstory', Tri> = {
+  name: { ru: 'Лираэль Звёздный Шёпот', uk: 'Ліраель Зоряний Шепіт', en: 'Lirael Starwhisper' },
+  backstory: {
+    ru: 'Юная волшебница из башни Семи Звёзд. Читает быстрее, чем дышит, и мечтает увидеть настоящего дракона.',
+    uk: 'Юна чарівниця з вежі Семи Зірок. Читає швидше, ніж дихає, і мріє побачити справжнього дракона.',
+    en: 'A young wizard from the Tower of Seven Stars. Reads faster than she breathes and dreams of seeing a real dragon.',
+  },
+};
+
+const BRENNA: Record<'name' | 'backstory', Tri> = {
+  name: { ru: 'Бренна Светлый Щит', uk: 'Бренна Світлий Щит', en: 'Brenna Brightshield' },
+  backstory: {
+    ru: 'Служительница храма Рассвета. Верит, что каждого можно спасти — а кого нельзя, того утихомирит булава.',
+    uk: 'Служителька храму Світанку. Вірить, що кожного можна врятувати — а кого не можна, того вгамує булава.',
+    en: 'An acolyte of the Temple of Dawn. Believes anyone can be saved — and those who can’t will be calmed by her mace.',
+  },
+};
+
+const PIP: Record<'name' | 'backstory', Tri> = {
+  name: { ru: 'Пип Лёгкая Лапка', uk: 'Піп Легка Лапка', en: 'Pip Lightpaw' },
+  backstory: {
+    ru: 'Бывший карманник из порта Синей Чайки. Клянётся, что завязал. Пальцы, правда, об этом не знают.',
+    uk: 'Колишній кишеньковий злодій із порту Синьої Чайки. Присягається, що зав’язав. Пальці, щоправда, про це не знають.',
+    en: 'A former pickpocket from Blue Gull Harbor. Swears he’s gone straight. His fingers, however, haven’t heard.',
+  },
+};
 
 // Готовая партия-пример: четыре героя 1-го уровня, которых можно изучать и менять
 export function buildSampleParty(): Character[] {
   const torin = buildNewCharacter({
-    name: 'Торин Каменное Сердце',
-    playerName: 'Пример',
+    name: tr(TORIN.name),
+    playerName: tr(SAMPLE_PLAYER),
     portrait: { icon: '🛡️', hue: 10 },
     classId: 'fighter',
     speciesId: 'dwarf',
@@ -17,13 +57,13 @@ export function buildSampleParty(): Character[] {
     cantrips: [],
     prepared: [],
     alignment: 'Законно-добрый',
-    backstory: 'Ветеран горной стражи. Ищет легендарный молот своего прадеда, украденный гоблинами.',
+    backstory: tr(TORIN.backstory),
   });
   torin.inventory.push({ uid: uid(), itemId: 'potion-of-healing', qty: 2, equipped: false });
 
   const lirael = buildNewCharacter({
-    name: 'Лираэль Звёздный Шёпот',
-    playerName: 'Пример',
+    name: tr(LIRAEL.name),
+    playerName: tr(SAMPLE_PLAYER),
     portrait: { icon: '🌙', hue: 230 },
     classId: 'wizard',
     speciesId: 'elf',
@@ -33,12 +73,12 @@ export function buildSampleParty(): Character[] {
     cantrips: ['fire-bolt', 'mage-hand', 'light'],
     prepared: ['magic-missile', 'mage-armor', 'shield', 'sleep'],
     alignment: 'Нейтрально-добрый',
-    backstory: 'Юная волшебница из башни Семи Звёзд. Читает быстрее, чем дышит, и мечтает увидеть настоящего дракона.',
+    backstory: tr(LIRAEL.backstory),
   });
 
   const brenna = buildNewCharacter({
-    name: 'Бренна Светлый Щит',
-    playerName: 'Пример',
+    name: tr(BRENNA.name),
+    playerName: tr(SAMPLE_PLAYER),
     portrait: { icon: '☀️', hue: 45 },
     classId: 'cleric',
     speciesId: 'human',
@@ -49,12 +89,12 @@ export function buildSampleParty(): Character[] {
     cantrips: ['sacred-flame', 'guidance', 'light'],
     prepared: ['cure-wounds', 'bless', 'guiding-bolt', 'shield-of-faith'],
     alignment: 'Законно-добрый',
-    backstory: 'Служительница храма Рассвета. Верит, что каждого можно спасти — а кого нельзя, того утихомирит булава.',
+    backstory: tr(BRENNA.backstory),
   });
 
   const pip = buildNewCharacter({
-    name: 'Пип Лёгкая Лапка',
-    playerName: 'Пример',
+    name: tr(PIP.name),
+    playerName: tr(SAMPLE_PLAYER),
     portrait: { icon: '🍀', hue: 120 },
     classId: 'rogue',
     speciesId: 'halfling',
@@ -65,7 +105,7 @@ export function buildSampleParty(): Character[] {
     cantrips: [],
     prepared: [],
     alignment: 'Хаотично-добрый',
-    backstory: 'Бывший карманник из порта Синей Чайки. Клянётся, что завязал. Пальцы, правда, об этом не знают.',
+    backstory: tr(PIP.backstory),
   });
 
   return [torin, lirael, brenna, pip];

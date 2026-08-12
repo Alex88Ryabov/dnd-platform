@@ -1,7 +1,8 @@
 import type { Ability, Character, ClassFeature } from '../model/types';
-import { CLASSES_BY_ID } from '../data/classes';
-import { FEATS_BY_ID } from '../data/feats';
-import { ABILITY_NAMES } from '../data/core';
+import { getCatalog } from '../i18n/catalog';
+import { rules } from '../i18n/rules';
+import { tr } from '../i18n/tr';
+import { T_ENGINE } from '../i18n/ui/engine';
 import { dieAverage } from './dice';
 import { derive } from './derive';
 
@@ -33,7 +34,7 @@ export function previewLevelUp(char: Character): LevelUpPreview | null {
   if (char.level >= 20) {
     return null;
   }
-  const classDef = CLASSES_BY_ID[char.classId];
+  const classDef = getCatalog().classesById[char.classId];
   const newLevel = char.level + 1;
   const features = classDef.features.filter((f) => f.level === newLevel);
   const needsSubclass = newLevel === classDef.subclassLevel && !char.subclassId;
@@ -49,12 +50,12 @@ export function previewLevelUp(char: Character): LevelUpPreview | null {
     const prevPrepared = classDef.caster.preparedByLevel[char.level] ?? 0;
     const nextPrepared = classDef.caster.preparedByLevel[newLevel] ?? 0;
     if (nextPrepared > prevPrepared) {
-      spellNotes.push(`Подготовленных заклинаний: ${nextPrepared} (было ${prevPrepared}).`);
+      spellNotes.push(tr(T_ENGINE.preparedSpells, { n: nextPrepared, m: prevPrepared }));
     }
     const prevCantrips = classDef.caster.cantripsByLevel[char.level] ?? 0;
     const nextCantrips = classDef.caster.cantripsByLevel[newLevel] ?? 0;
     if (nextCantrips > prevCantrips) {
-      spellNotes.push(`Новый заговор! Всего заговоров: ${nextCantrips}.`);
+      spellNotes.push(tr(T_ENGINE.newCantrip, { n: nextCantrips }));
     }
   }
 
@@ -72,7 +73,9 @@ export function previewLevelUp(char: Character): LevelUpPreview | null {
 }
 
 export function applyLevelUp(char: Character, decisions: LevelUpDecisions): Character {
-  const classDef = CLASSES_BY_ID[char.classId];
+  const { classesById, featsById } = getCatalog();
+  const abilityNames = rules().abilityNames;
+  const classDef = classesById[char.classId];
   const newLevel = char.level + 1;
   const notes: string[] = [];
 
@@ -88,8 +91,8 @@ export function applyLevelUp(char: Character, decisions: LevelUpDecisions): Char
   };
 
   notes.push(decisions.hpMode === 'roll'
-    ? `Кость хитов: выпало ${decisions.hpGain}`
-    : `Хиты по среднему: ${decisions.hpGain}`);
+    ? tr(T_ENGINE.hitDieRolled, { n: decisions.hpGain })
+    : tr(T_ENGINE.hpAverage, { n: decisions.hpGain }));
 
   if (decisions.subclassId) {
     next.subclassId = decisions.subclassId;
@@ -104,16 +107,16 @@ export function applyLevelUp(char: Character, decisions: LevelUpDecisions): Char
     if (asi.kind === 'asi') {
       next.abilities[asi.first] = Math.min(20, next.abilities[asi.first] + 1);
       next.abilities[asi.second] = Math.min(20, next.abilities[asi.second] + 1);
-      notes.push(`+1 ${ABILITY_NAMES[asi.first]}, +1 ${ABILITY_NAMES[asi.second]}`);
+      notes.push(`+1 ${abilityNames[asi.first]}, +1 ${abilityNames[asi.second]}`);
     } else if (asi.kind === 'asi2') {
       next.abilities[asi.first] = Math.min(20, next.abilities[asi.first] + 2);
-      notes.push(`+2 ${ABILITY_NAMES[asi.first]}`);
+      notes.push(`+2 ${abilityNames[asi.first]}`);
     } else if (asi.kind === 'feat') {
       next.featIds.push(asi.featId);
-      notes.push(`Черта: ${FEATS_BY_ID[asi.featId]?.name ?? asi.featId}`);
+      notes.push(tr(T_ENGINE.featGained, { name: featsById[asi.featId]?.name ?? asi.featId }));
     } else {
       next.customFeats.push({ name: asi.name, description: asi.description });
-      notes.push(`Черта: ${asi.name}`);
+      notes.push(tr(T_ENGINE.featGained, { name: asi.name }));
     }
   }
 
@@ -122,7 +125,7 @@ export function applyLevelUp(char: Character, decisions: LevelUpDecisions): Char
     ? (classDef.subclasses.find((s) => s.id === next.subclassId)?.features ?? []).filter((f) => f.level === newLevel)
     : [];
   for (const feature of [...gainedFeatures, ...subFeatures]) {
-    notes.push(`Умение: ${feature.name}`);
+    notes.push(tr(T_ENGINE.featureGained, { name: feature.name }));
   }
 
   // прибавка к текущим хитам = рост максимума (включая Телосложение и бонусы)

@@ -4,9 +4,13 @@ import { useStore } from '../../store/store';
 import { derive } from '../../engine/derive';
 import { xpForNextLevel, xpProgress } from '../../engine/xp';
 import { applyLongRest } from '../../engine/rest';
-import { CLASSES_BY_ID } from '../../data/classes';
-import { SPECIES_BY_ID } from '../../data/species';
-import { BACKGROUNDS_BY_ID } from '../../data/backgrounds';
+import { useCatalog } from '../../i18n/catalog';
+import { useLang } from '../../i18n/lang';
+import { useT } from '../../i18n/tr';
+import type { Tri } from '../../i18n/tr';
+import { fmtDistance } from '../../i18n/units';
+import { T_SHEET } from '../../i18n/ui/sheet';
+import { T_CHARS } from '../../i18n/ui/characters';
 import { ClassEmblem } from '../../svg/icons';
 import { HpBadge } from './HpBadge';
 import { PortraitBadge } from '../../components/PortraitBadge';
@@ -37,11 +41,14 @@ export function CharacterSheet({ character, onBack }: Props) {
   const [editing, setEditing] = useState(false);
   const [shortResting, setShortResting] = useState(false);
   const [hpFlash, setHpFlash] = useState<'damage' | 'heal' | null>(null);
+  const lang = useLang();
+  const t = useT();
+  const { classesById, speciesById, backgroundsById } = useCatalog();
 
-  const stats = useMemo(() => derive(character), [character]);
-  const classDef = CLASSES_BY_ID[character.classId];
-  const species = SPECIES_BY_ID[character.speciesId];
-  const background = BACKGROUNDS_BY_ID[character.backgroundId];
+  const stats = useMemo(() => derive(character), [character, lang]);
+  const classDef = classesById[character.classId];
+  const species = speciesById[character.speciesId];
+  const background = backgroundsById[character.backgroundId];
   const subclass = classDef.subclasses.find((s) => s.id === character.subclassId);
 
   const nextXp = xpForNextLevel(character.level);
@@ -55,26 +62,26 @@ export function CharacterSheet({ character, onBack }: Props) {
   const doLongRest = () => {
     updateCharacter(character.id, (c) => applyLongRest(c));
     sfx.heal();
-    toast('Долгий отдых', 'Хиты, ячейки и силы полностью восстановлены', '🌙');
+    toast(t(T_SHEET.longRestDone), t(T_SHEET.longRestDoneText), '🌙');
   };
 
-  const tabs: { id: SheetTab; label: string }[] = [
-    { id: 'combat', label: '⚔️ Бой' },
-    { id: 'abilities', label: '🎯 Навыки' },
-    ...(stats.spellcasting ? [{ id: 'spells' as SheetTab, label: '✨ Заклинания' }] : []),
-    { id: 'inventory', label: '🎒 Снаряжение' },
-    { id: 'features', label: '📜 Умения' },
-    { id: 'bio', label: '🪶 История' },
+  const tabs: { id: SheetTab; label: Tri }[] = [
+    { id: 'combat', label: T_SHEET.tabCombat },
+    { id: 'abilities', label: T_SHEET.tabAbilities },
+    ...(stats.spellcasting ? [{ id: 'spells' as SheetTab, label: T_SHEET.tabSpells }] : []),
+    { id: 'inventory', label: T_SHEET.tabInventory },
+    { id: 'features', label: T_SHEET.tabFeatures },
+    { id: 'bio', label: T_SHEET.tabBio },
   ];
 
   return (
     <div className="col" style={{ gap: 16 }}>
       <div className="row-wrap spread" style={{ gap: 8 }}>
-        <button className="btn btn-ghost btn-sm" onClick={onBack}>← Все герои</button>
+        <button className="btn btn-ghost btn-sm" onClick={onBack}>{t(T_SHEET.allHeroes)}</button>
         <div className="row-wrap" style={{ gap: 8 }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => setShortResting(true)}>🔥 Короткий отдых</button>
-          <button className="btn btn-ghost btn-sm" onClick={doLongRest}>🌙 Долгий отдых</button>
-          <button className="btn btn-ghost btn-sm" onClick={() => setEditing(true)}>✎ Править</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setShortResting(true)}>{t(T_SHEET.shortRest)}</button>
+          <button className="btn btn-ghost btn-sm" onClick={doLongRest}>{t(T_SHEET.longRest)}</button>
+          <button className="btn btn-ghost btn-sm" onClick={() => setEditing(true)}>{t(T_SHEET.editBtn)}</button>
         </div>
       </div>
 
@@ -92,11 +99,11 @@ export function CharacterSheet({ character, onBack }: Props) {
               <span>·</span>
               <span>{species.name}</span>
               <span>·</span>
-              <span>{background?.name ?? character.customBackground ?? 'Своя предыстория'}</span>
+              <span>{background?.name ?? character.customBackground ?? t(T_SHEET.customBackground)}</span>
               {character.playerName && (
                 <>
                   <span>·</span>
-                  <span className="script" style={{ fontSize: 16 }}>Игрок: {character.playerName}</span>
+                  <span className="script" style={{ fontSize: 16 }}>{t(T_CHARS.player, { name: character.playerName })}</span>
                 </>
               )}
             </div>
@@ -106,23 +113,23 @@ export function CharacterSheet({ character, onBack }: Props) {
             </div>
 
             <div className="row-wrap" style={{ gap: 6, marginTop: 10 }}>
-              <span className="chip" title={`КБ: ${stats.acNote}`}>🛡️ КБ {stats.ac}</span>
-              <span className="chip">⚡ Иниц. {stats.initiative >= 0 ? `+${stats.initiative}` : stats.initiative}</span>
-              <span className="chip">👟 {(stats.speedFt * 0.3).toFixed(stats.speedFt % 10 === 5 ? 1 : 0)} м</span>
-              <span className="chip">🎓 Маст. +{stats.pb}</span>
-              <span className="chip">👁️ Восприятие {stats.passivePerception}</span>
+              <span className="chip" title={t(T_SHEET.acTitle, { note: stats.acNote })}>{t(T_SHEET.acChip, { n: stats.ac })}</span>
+              <span className="chip">{t(T_SHEET.initChip, { n: stats.initiative >= 0 ? `+${stats.initiative}` : stats.initiative })}</span>
+              <span className="chip">👟 {fmtDistance(stats.speedFt, lang)}</span>
+              <span className="chip">{t(T_SHEET.pbChip, { n: stats.pb })}</span>
+              <span className="chip">{t(T_SHEET.perceptionChip, { n: stats.passivePerception })}</span>
               <button
                 className={`chip chip-clickable${character.heroicInspiration ? ' chip-active' : ''}`}
-                title="Героическое вдохновение: потратьте, чтобы перебросить любой d20"
+                title={t(T_SHEET.inspirationHint)}
                 onClick={() => updateCharacter(character.id, (c) => ({ ...c, heroicInspiration: !c.heroicInspiration }))}
               >
-                {character.heroicInspiration ? '⭐ Вдохновение!' : '☆ Вдохновение'}
+                {character.heroicInspiration ? t(T_SHEET.inspirationOn) : t(T_SHEET.inspirationOff)}
               </button>
             </div>
           </div>
 
           <div className="center" style={{ minWidth: 150 }}>
-            <div className="faint small" style={{ letterSpacing: '0.14em', textTransform: 'uppercase' }}>Уровень</div>
+            <div className="faint small" style={{ letterSpacing: '0.14em', textTransform: 'uppercase' }}>{t(T_SHEET.levelLabel)}</div>
             <div
               style={{
                 fontFamily: 'var(--font-display)',
@@ -158,7 +165,7 @@ export function CharacterSheet({ character, onBack }: Props) {
                 style={{ marginTop: 10 }}
                 onClick={() => setLevelingUp(true)}
               >
-                ⬆ Новый уровень
+                {t(T_SHEET.newLevel)}
               </button>
             )}
           </div>
@@ -166,13 +173,13 @@ export function CharacterSheet({ character, onBack }: Props) {
       </div>
 
       <div className="tab-row no-print">
-        {tabs.map((t) => (
+        {tabs.map((entry) => (
           <button
-            key={t.id}
-            className={`tab-btn${tab === t.id ? ' active' : ''}`}
-            onClick={() => setTab(t.id)}
+            key={entry.id}
+            className={`tab-btn${tab === entry.id ? ' active' : ''}`}
+            onClick={() => setTab(entry.id)}
           >
-            {t.label}
+            {t(entry.label)}
           </button>
         ))}
       </div>

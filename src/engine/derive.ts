@@ -2,14 +2,12 @@ import type {
   Ability, Character, ClassDef, ClassResourceDef, InventoryItem, ItemDef, Recharge, SkillId,
 } from '../model/types';
 import { FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, PACT_SLOTS, PB_FOR_LEVEL, SKILLS } from '../data/core';
-import { CLASSES_BY_ID } from '../data/classes';
-import { SPECIES_BY_ID } from '../data/species';
-import { ITEMS } from '../data/equipment';
+import { getCatalog } from '../i18n/catalog';
+import { rules } from '../i18n/rules';
+import { tr } from '../i18n/tr';
+import { T_ENGINE } from '../i18n/ui/engine';
+import { fmtDistance } from '../i18n/units';
 import { formatModifier } from './dice';
-
-export const ITEMS_BY_ID: Record<string, ItemDef> = Object.fromEntries(
-  ITEMS.map((item) => [item.id, item]),
-);
 
 export interface SkillRow {
   id: SkillId;
@@ -79,17 +77,12 @@ export function abilityMod(score: number): number {
   return Math.floor((score - 10) / 2);
 }
 
-export function ftToM(feet: number): string {
-  const meters = feet * 0.3;
-  return `${Number.isInteger(meters) ? meters : meters.toFixed(1)} м`;
-}
-
 export function resolveItem(entry: InventoryItem): ItemDef | undefined {
-  return entry.itemId ? ITEMS_BY_ID[entry.itemId] : undefined;
+  return entry.itemId ? getCatalog().itemsById[entry.itemId] : undefined;
 }
 
 export function itemName(entry: InventoryItem): string {
-  return resolveItem(entry)?.name ?? entry.custom?.name ?? 'Предмет';
+  return resolveItem(entry)?.name ?? entry.custom?.name ?? tr(T_ENGINE.itemFallback);
 }
 
 function resourceMax(def: ClassResourceDef, level: number, mods: Record<Ability, number>, pb: number): number {
@@ -130,8 +123,9 @@ export function sneakAttackDice(level: number): number {
 }
 
 export function derive(char: Character): DerivedStats {
-  const classDef = CLASSES_BY_ID[char.classId];
-  const species = SPECIES_BY_ID[char.speciesId];
+  const { classesById, speciesById } = getCatalog();
+  const classDef = classesById[char.classId];
+  const species = speciesById[char.speciesId];
   const level = char.level;
   const pb = PB_FOR_LEVEL[level];
 
@@ -171,7 +165,7 @@ export function derive(char: Character): DerivedStats {
   }, 0);
 
   const acCandidates: { value: number; note: string }[] = [
-    { value: 10 + mods.dex, note: 'без доспехов' },
+    { value: 10 + mods.dex, note: tr(T_ENGINE.acUnarmored) },
   ];
   if (armorDef?.armor) {
     const dexPart = armorDef.armor.dexCap === null
@@ -180,26 +174,26 @@ export function derive(char: Character): DerivedStats {
     acCandidates.push({ value: armorDef.armor.baseAC + dexPart, note: armorDef.name });
   }
   if (char.classId === 'barbarian' && !armorDef) {
-    acCandidates.push({ value: 10 + mods.dex + mods.con, note: 'защита без доспехов' });
+    acCandidates.push({ value: 10 + mods.dex + mods.con, note: tr(T_ENGINE.acUnarmoredDefense) });
   }
   if (char.classId === 'monk' && !armorDef && !hasShield) {
-    acCandidates.push({ value: 10 + mods.dex + mods.wis, note: 'защита без доспехов' });
+    acCandidates.push({ value: 10 + mods.dex + mods.wis, note: tr(T_ENGINE.acUnarmoredDefense) });
   }
   if (char.subclassId === 'draconic' && !armorDef) {
-    acCandidates.push({ value: 10 + mods.dex + mods.cha, note: 'драконья устойчивость' });
+    acCandidates.push({ value: 10 + mods.dex + mods.cha, note: tr(T_ENGINE.acDraconic) });
   }
   if (char.speciesId === 'tortle') {
-    acCandidates.push({ value: 17, note: 'панцирь' });
+    acCandidates.push({ value: 17, note: tr(T_ENGINE.acShell) });
   }
   if (char.speciesId === 'lizardfolk' && !armorDef) {
-    acCandidates.push({ value: 13 + mods.dex, note: 'природная броня' });
+    acCandidates.push({ value: 13 + mods.dex, note: tr(T_ENGINE.acNatural) });
   }
   const best = acCandidates.reduce((a, b) => (b.value > a.value ? b : a));
   let ac = best.value + shieldBonus;
   if (char.speciesId === 'warforged') {
     ac += 1;
   }
-  let acNote = best.note + (shieldBonus > 0 ? ' + щит' : '');
+  let acNote = best.note + (shieldBonus > 0 ? tr(T_ENGINE.acShield) : '');
   if (char.fightingStyleId === 'fs-defense' && armorDef) {
     ac += 1;
   }
@@ -211,7 +205,7 @@ export function derive(char: Character): DerivedStats {
   ac += armorPlus;
   if (char.acOverride !== undefined) {
     ac = char.acOverride;
-    acNote = 'задано вручную';
+    acNote = tr(T_ENGINE.acManual);
   }
 
   // --- Скорость ---
@@ -234,6 +228,7 @@ export function derive(char: Character): DerivedStats {
   }
 
   // --- Навыки и спасброски ---
+  const skillNames = rules().skillNames;
   const jack = char.classId === 'bard' && level >= 2 ? Math.floor(pb / 2) : 0;
   const skills: SkillRow[] = SKILLS.map((skill) => {
     const proficient = char.proficientSkills.includes(skill.id);
@@ -241,7 +236,7 @@ export function derive(char: Character): DerivedStats {
     const profPart = expertise ? pb * 2 : proficient ? pb : jack;
     return {
       id: skill.id,
-      name: skill.name,
+      name: skillNames[skill.id],
       ability: skill.ability,
       bonus: mods[skill.ability] + profPart,
       proficient,
@@ -296,21 +291,23 @@ export function derive(char: Character): DerivedStats {
       damage: `${damageDie}${damageMod !== 0 ? formatModifier(damageMod) : ''}`,
       damageType: w.damageType,
       masteryNote: masteryCount > 0 ? w.mastery : undefined,
-      rangeNote: w.range ? `${ftToM(w.range[0])} / ${ftToM(w.range[1])}` : w.versatile ? `двуручный хват: ${w.versatile}` : undefined,
+      rangeNote: w.range
+        ? `${fmtDistance(w.range[0])} / ${fmtDistance(w.range[1])}`
+        : w.versatile ? tr(T_ENGINE.twoHandedGrip, { dice: w.versatile }) : undefined,
     });
   }
   if (char.classId === 'monk') {
     const die = monkMartialArtsDie(level);
     const mod = Math.max(mods.str, mods.dex);
     attacks.push({
-      name: 'Безоружный удар (боевые искусства)',
+      name: tr(T_ENGINE.unarmedStrikeMartial),
       bonus: pb + mod,
       damage: `1d${die}${mod !== 0 ? formatModifier(mod) : ''}`,
       damageType: 'bludgeoning',
     });
   } else {
     attacks.push({
-      name: 'Безоружный удар',
+      name: tr(T_ENGINE.unarmedStrike),
       bonus: pb + mods.str,
       damage: `${Math.max(1, 1 + mods.str)}`,
       damageType: 'bludgeoning',

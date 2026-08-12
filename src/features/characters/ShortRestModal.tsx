@@ -4,6 +4,10 @@ import type { DerivedStats } from '../../engine/derive';
 import { useStore } from '../../store/store';
 import { applyShortRest, spendHitDice } from '../../engine/rest';
 import { rollDie, formatModifier } from '../../engine/dice';
+import { useT } from '../../i18n/tr';
+import { T_SHEET } from '../../i18n/ui/sheet';
+import { T_SPELLS } from '../../i18n/ui/spells';
+import { T_COMMON } from '../../i18n/ui/common';
 import { Modal } from '../../components/Modal';
 import { toast } from '../../components/Toasts';
 import { sfx } from '../../audio/sound';
@@ -17,6 +21,7 @@ interface Props {
 export function ShortRestModal({ character, stats, onClose }: Props) {
   const updateCharacter = useStore((s) => s.updateCharacter);
   const [rolled, setRolled] = useState<number[]>([]);
+  const t = useT();
 
   const available = stats.hitDiceAvailable - rolled.length;
 
@@ -36,24 +41,21 @@ export function ShortRestModal({ character, stats, onClose }: Props) {
     const healed = rolled.reduce((sum, r) => sum + Math.max(0, r + stats.mods.con), 0);
     sfx.heal();
     toast(
-      'Короткий отдых окончен',
-      rolled.length > 0
-        ? `Восстановлено ${healed} хитов, ресурсы короткого отдыха обновлены`
-        : 'Ресурсы короткого отдыха обновлены',
+      t(T_SPELLS.shortRestDone),
+      rolled.length > 0 ? t(T_SPELLS.shortRestHealed, { n: healed }) : t(T_SPELLS.shortRestNoHeal),
       '🔥',
     );
     onClose();
   };
 
   return (
-    <Modal title="🔥 Короткий отдых" onClose={onClose}>
+    <Modal title={t(T_SHEET.shortRest)} onClose={onClose}>
       <p className="muted small" style={{ marginBottom: 14 }}>
-        Час у костра. Можно потратить кости хитов, чтобы подлечиться: бросаете d{stats.hitDie},
-        прибавляете Телосложение ({formatModifier(stats.mods.con)}) — столько хитов вернётся.
+        {t(T_SPELLS.shortRestHint, { die: stats.hitDie, mod: formatModifier(stats.mods.con) })}
       </p>
       <div className="row-wrap" style={{ gap: 10 }}>
         <button className="btn btn-primary" onClick={rollOne} disabled={available <= 0}>
-          🎲 Бросить кость хитов (осталось {available})
+          {t(T_SPELLS.rollHitDie, { n: available })}
         </button>
       </div>
       {rolled.length > 0 && (
@@ -66,13 +68,13 @@ export function ShortRestModal({ character, stats, onClose }: Props) {
             ))}
           </div>
           <div className="gold" style={{ marginTop: 8, fontWeight: 700 }}>
-            Всего лечения: {rolled.reduce((s, r) => s + Math.max(0, r + stats.mods.con), 0)} хитов
+            {t(T_SPELLS.totalHealing, { n: rolled.reduce((s, r) => s + Math.max(0, r + stats.mods.con), 0) })}
           </div>
         </div>
       )}
       <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
-        <button className="btn btn-ghost" onClick={onClose}>Отмена</button>
-        <button className="btn btn-primary" onClick={finish}>Закончить отдых</button>
+        <button className="btn btn-ghost" onClick={onClose}>{t(T_COMMON.cancel)}</button>
+        <button className="btn btn-primary" onClick={finish}>{t(T_SPELLS.endRest)}</button>
       </div>
     </Modal>
   );

@@ -2,8 +2,13 @@ import { useMemo, useState } from 'react';
 import type { Character, SpellDef } from '../../model/types';
 import type { DerivedStats } from '../../engine/derive';
 import { useStore } from '../../store/store';
-import { SPELLS } from '../../data/spells';
-import { ABILITY_NAMES, SCHOOL_ICONS, SCHOOL_NAMES } from '../../data/core';
+import { SCHOOL_ICONS } from '../../data/core';
+import { useCatalog } from '../../i18n/catalog';
+import { useLang } from '../../i18n/lang';
+import { useRules } from '../../i18n/rules';
+import { useT } from '../../i18n/tr';
+import { T_SPELLS } from '../../i18n/ui/spells';
+import { T_COMMON } from '../../i18n/ui/common';
 import { checkRoll, formulaRoll } from '../../engine/rolling';
 import { parseFormula } from '../../engine/dice';
 import { Modal } from '../../components/Modal';
@@ -13,12 +18,6 @@ import { sfx } from '../../audio/sound';
 interface Props {
   character: Character;
   stats: DerivedStats;
-}
-
-const SPELLS_BY_ID: Record<string, SpellDef> = Object.fromEntries(SPELLS.map((s) => [s.id, s]));
-
-function resolveSpell(character: Character, id: string): SpellDef | undefined {
-  return SPELLS_BY_ID[id] ?? character.spells.customSpells.find((s) => s.id === id);
 }
 
 // заговоры усиливаются на 5, 11 и 17 уровнях
@@ -39,15 +38,23 @@ export function SheetSpells({ character, stats }: Props) {
   const updateCharacter = useStore((s) => s.updateCharacter);
   const [editingList, setEditingList] = useState(false);
   const [casting, setCasting] = useState<SpellDef | null>(null);
+  const t = useT();
+  const { spellsById } = useCatalog();
+  const { abilityNames } = useRules();
   const spellcasting = stats.spellcasting!;
 
+  const resolveSpell = (id: string): SpellDef | undefined => (
+    spellsById[id] ?? character.spells.customSpells.find((s) => s.id === id)
+  );
+
+  const lang = useLang();
   const cantrips = character.spells.cantrips
-    .map((id) => resolveSpell(character, id))
+    .map((id) => resolveSpell(id))
     .filter((s): s is SpellDef => Boolean(s));
   const prepared = character.spells.prepared
-    .map((id) => resolveSpell(character, id))
+    .map((id) => resolveSpell(id))
     .filter((s): s is SpellDef => Boolean(s))
-    .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, 'ru'));
+    .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, lang));
 
   const spendSlot = (circle: number) => {
     updateCharacter(character.id, (c) => {
@@ -85,7 +92,7 @@ export function SheetSpells({ character, stats }: Props) {
     } else {
       sfx.click();
       toast(`✨ ${spell.name}`, spell.save
-        ? `Цель: спасбросок ${ABILITY_NAMES[spell.save]} против СЛ ${spellcasting.dc}`
+        ? t(T_SPELLS.saveVs, { ability: abilityNames[spell.save], dc: spellcasting.dc })
         : spell.description.slice(0, 120), SCHOOL_ICONS[spell.school]);
     }
     setCasting(null);
@@ -100,18 +107,18 @@ export function SheetSpells({ character, stats }: Props) {
       <section className="panel">
         <div className="row-wrap spread">
           <div className="row-wrap" style={{ gap: 8 }}>
-            <span className="chip chip-active">СЛ заклинаний {spellcasting.dc}</span>
+            <span className="chip chip-active">{t(T_SPELLS.dcChip, { n: spellcasting.dc })}</span>
             <button
               className="chip chip-clickable"
-              title="Бросок атаки заклинанием"
-              onClick={() => checkRoll({ label: 'Атака заклинанием', modifier: spellcasting.attackBonus, who: character.name })}
+              title={t(T_SPELLS.attackHint)}
+              onClick={() => checkRoll({ label: t(T_SPELLS.attackLabel), modifier: spellcasting.attackBonus, who: character.name })}
             >
-              🎲 Атака +{spellcasting.attackBonus}
+              {t(T_SPELLS.attackChip, { n: spellcasting.attackBonus })}
             </button>
-            <span className="chip">{ABILITY_NAMES[spellcasting.ability]}</span>
+            <span className="chip">{abilityNames[spellcasting.ability]}</span>
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => setEditingList(true)}>
-            ✎ Изменить список
+            {t(T_SPELLS.editList)}
           </button>
         </div>
 
@@ -120,13 +127,13 @@ export function SheetSpells({ character, stats }: Props) {
         <div className="col" style={{ gap: 10 }}>
           {circlesWithSlots.map(({ circle, max, used }) => (
             <div key={circle} className="row" style={{ gap: 12 }}>
-              <span className="small muted" style={{ width: 64 }}>Круг {circle}</span>
+              <span className="small muted" style={{ width: 64 }}>{t(T_SPELLS.circleN, { n: circle })}</span>
               <div className="row-wrap" style={{ gap: 7 }}>
                 {Array.from({ length: max }, (_, i) => (
                   <div
                     key={i}
                     className={`slot-orb${i < used ? ' spent' : ''}`}
-                    title={i < used ? 'Вернуть ячейку' : 'Потратить ячейку'}
+                    title={i < used ? t(T_SPELLS.restoreSlot) : t(T_SPELLS.spendSlot)}
                     onClick={() => {
                       updateCharacter(character.id, (c) => {
                         const slotsUsed = [...c.spells.slotsUsed];
@@ -142,7 +149,7 @@ export function SheetSpells({ character, stats }: Props) {
           ))}
           {spellcasting.pactSlots > 0 && (
             <div className="row" style={{ gap: 12 }}>
-              <span className="small muted" style={{ width: 64 }}>Пакт ({spellcasting.pactLevel} кр.)</span>
+              <span className="small muted" style={{ width: 64 }}>{t(T_SPELLS.pactSlots, { n: spellcasting.pactLevel })}</span>
               <div className="row-wrap" style={{ gap: 7 }}>
                 {Array.from({ length: spellcasting.pactSlots }, (_, i) => (
                   <div
@@ -166,48 +173,48 @@ export function SheetSpells({ character, stats }: Props) {
 
       {cantrips.length > 0 && (
         <section className="panel">
-          <div className="section-title">Заговоры</div>
-          <SpellList spells={cantrips} onCast={(s) => doCast(s, 'cantrip')} castLabel="Наложить" />
+          <div className="section-title">{t(T_SPELLS.cantripsTitle)}</div>
+          <SpellList spells={cantrips} onCast={(s) => doCast(s, 'cantrip')} />
         </section>
       )}
 
       <section className="panel">
         <div className="section-title">
-          Подготовленные заклинания ({prepared.length} из {spellcasting.preparedMax})
+          {t(T_SPELLS.preparedTitle, { a: prepared.length, b: spellcasting.preparedMax })}
         </div>
         {prepared.length === 0 ? (
-          <div className="muted small">Нажмите «Изменить список», чтобы подготовить заклинания.</div>
+          <div className="muted small">{t(T_SPELLS.noPrepared)}</div>
         ) : (
-          <SpellList spells={prepared} onCast={(s) => setCasting(s)} castLabel="Наложить" />
+          <SpellList spells={prepared} onCast={(s) => setCasting(s)} />
         )}
       </section>
 
       {casting && (
-        <Modal title={`${casting.name} — какой ячейкой?`} onClose={() => setCasting(null)}>
+        <Modal title={t(T_SPELLS.castWith, { name: casting.name })} onClose={() => setCasting(null)}>
           <div className="small muted" style={{ marginBottom: 12 }}>{casting.description}</div>
           <div className="row-wrap" style={{ gap: 8 }}>
             {circlesWithSlots
               .filter((c) => c.circle >= casting.level && c.used < c.max)
               .map((c) => (
                 <button key={c.circle} className="btn btn-primary" onClick={() => doCast(casting, c.circle)}>
-                  Круг {c.circle} ({c.max - c.used} ост.)
+                  {t(T_SPELLS.circleBtn, { n: c.circle, m: c.max - c.used })}
                 </button>
               ))}
             {spellcasting.pactSlots > 0 && character.spells.pactUsed < spellcasting.pactSlots && spellcasting.pactLevel >= casting.level && (
               <button className="btn btn-primary" onClick={() => doCast(casting, 'pact')}>
-                Ячейка пакта ({spellcasting.pactSlots - character.spells.pactUsed} ост.)
+                {t(T_SPELLS.pactBtn, { n: spellcasting.pactSlots - character.spells.pactUsed })}
               </button>
             )}
             {casting.ritual && (
               <button className="btn btn-ghost" onClick={() => doCast(casting, 'cantrip')}>
-                📿 Ритуалом (без ячейки, +10 минут)
+                {t(T_SPELLS.ritualBtn)}
               </button>
             )}
           </div>
           {circlesWithSlots.every((c) => c.circle < casting.level || c.used >= c.max)
             && !(spellcasting.pactSlots > 0 && character.spells.pactUsed < spellcasting.pactSlots) && !casting.ritual && (
             <div className="small" style={{ color: 'var(--danger)', marginTop: 10 }}>
-              Свободных ячеек нет — нужен отдых.
+              {t(T_SPELLS.noSlots)}
             </div>
           )}
         </Modal>
@@ -220,7 +227,9 @@ export function SheetSpells({ character, stats }: Props) {
   );
 }
 
-function SpellList({ spells, onCast, castLabel }: { spells: SpellDef[]; onCast: (s: SpellDef) => void; castLabel: string }) {
+function SpellList({ spells, onCast }: { spells: SpellDef[]; onCast: (s: SpellDef) => void }) {
+  const t = useT();
+  const { schoolNames } = useRules();
   return (
     <div className="col" style={{ gap: 4 }}>
       {spells.map((spell) => (
@@ -230,8 +239,8 @@ function SpellList({ spells, onCast, castLabel }: { spells: SpellDef[]; onCast: 
             <span className="grow">
               <b style={{ color: 'var(--parchment)' }}>{spell.name}</b>
               <span className="small faint">
-                {' '}· {spell.level === 0 ? 'заговор' : `${spell.level} круг`}
-                {spell.concentration ? ' · конц.' : ''}{spell.ritual ? ' · ритуал' : ''}
+                {' '}· {spell.level === 0 ? t(T_SPELLS.cantrip) : t(T_SPELLS.circleShort, { n: spell.level })}
+                {spell.concentration ? ` · ${t(T_SPELLS.conc)}` : ''}{spell.ritual ? ` · ${t(T_SPELLS.ritual)}` : ''}
               </span>
             </span>
             <button
@@ -241,12 +250,12 @@ function SpellList({ spells, onCast, castLabel }: { spells: SpellDef[]; onCast: 
                 onCast(spell);
               }}
             >
-              ✨ {castLabel}
+              ✨ {t(T_SPELLS.cast)}
             </button>
           </summary>
           <div className="small muted" style={{ padding: '8px 4px 4px 30px' }}>
             <div className="row-wrap" style={{ gap: 6, marginBottom: 6 }}>
-              <span className="chip">{SCHOOL_NAMES[spell.school]}</span>
+              <span className="chip">{schoolNames[spell.school]}</span>
               <span className="chip">{spell.castingTime}</span>
               <span className="chip">{spell.range}</span>
               <span className="chip">{spell.duration}</span>
@@ -254,7 +263,7 @@ function SpellList({ spells, onCast, castLabel }: { spells: SpellDef[]; onCast: 
             </div>
             {spell.description}
             {spell.higherLevels && (
-              <div style={{ marginTop: 5 }}><span className="gold">Усиление:</span> {spell.higherLevels}</div>
+              <div style={{ marginTop: 5 }}><span className="gold">{t(T_SPELLS.higher)}</span> {spell.higherLevels}</div>
             )}
           </div>
         </details>
@@ -269,16 +278,19 @@ function EditSpellsModal({ character, stats, onClose }: { character: Character; 
   const [customName, setCustomName] = useState('');
   const [customLevel, setCustomLevel] = useState(1);
   const [customDesc, setCustomDesc] = useState('');
+  const lang = useLang();
+  const t = useT();
+  const { spells } = useCatalog();
 
   const available = useMemo(() => {
-    const list = SPELLS.filter((s) => s.classes.includes(character.classId));
+    const list = spells.filter((s) => s.classes.includes(character.classId));
     const custom = character.spells.customSpells;
     return {
       cantripList: [...list.filter((s) => s.level === 0), ...custom.filter((s) => s.level === 0)],
       leveled: [...list.filter((s) => s.level > 0), ...custom.filter((s) => s.level > 0)]
-        .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, 'ru')),
+        .sort((a, b) => a.level - b.level || a.name.localeCompare(b.name, lang)),
     };
-  }, [character.classId, character.spells.customSpells]);
+  }, [character.classId, character.spells.customSpells, spells, lang]);
 
   const maxCircle = Math.max(
     spellcasting.pactLevel,
@@ -317,7 +329,7 @@ function EditSpellsModal({ character, stats, onClose }: { character: Character; 
       components: '—',
       duration: '—',
       classes: [character.classId],
-      description: customDesc.trim() || 'Домашнее заклинание.',
+      description: customDesc.trim() || t(T_SPELLS.homebrewSpell),
     };
     updateCharacter(character.id, (c) => ({
       ...c,
@@ -331,15 +343,15 @@ function EditSpellsModal({ character, stats, onClose }: { character: Character; 
     }));
     setCustomName('');
     setCustomDesc('');
-    toast('Заклинание добавлено', spell.name, '📜');
+    toast(t(T_SPELLS.spellAdded), spell.name, '📜');
   };
 
   return (
-    <Modal title="Список заклинаний" onClose={onClose} wide>
+    <Modal title={t(T_SPELLS.listTitle)} onClose={onClose} wide>
       {spellcasting.cantripsMax > 0 && (
         <>
           <div className="section-title">
-            Заговоры — {character.spells.cantrips.length} из {spellcasting.cantripsMax}
+            {t(T_SPELLS.cantripsCount, { a: character.spells.cantrips.length, b: spellcasting.cantripsMax })}
           </div>
           <div className="col" style={{ gap: 5, maxHeight: 200, overflowY: 'auto', marginBottom: 16, paddingRight: 6 }}>
             {available.cantripList.map((spell) => (
@@ -361,7 +373,7 @@ function EditSpellsModal({ character, stats, onClose }: { character: Character; 
       )}
 
       <div className="section-title">
-        Подготовленные — {character.spells.prepared.length} из {spellcasting.preparedMax}
+        {t(T_SPELLS.preparedCount, { a: character.spells.prepared.length, b: spellcasting.preparedMax })}
       </div>
       <div className="col" style={{ gap: 5, maxHeight: 300, overflowY: 'auto', paddingRight: 6 }}>
         {available.leveled.filter((s) => s.level <= Math.max(1, maxCircle)).map((spell) => (
@@ -382,17 +394,17 @@ function EditSpellsModal({ character, stats, onClose }: { character: Character; 
       </div>
 
       <div className="divider" />
-      <div className="section-title">Своё заклинание (домашние правила)</div>
+      <div className="section-title">{t(T_SPELLS.customSpell)}</div>
       <div className="row-wrap" style={{ gap: 8 }}>
-        <input placeholder="Название" value={customName} onChange={(e) => setCustomName(e.target.value)} style={{ width: 200 }} />
+        <input placeholder={t(T_COMMON.name)} value={customName} onChange={(e) => setCustomName(e.target.value)} style={{ width: 200 }} />
         <select value={customLevel} onChange={(e) => setCustomLevel(Number(e.target.value))}>
-          <option value={0}>Заговор</option>
+          <option value={0}>{t(T_SPELLS.cantripOpt)}</option>
           {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((l) => (
-            <option key={l} value={l}>{l} круг</option>
+            <option key={l} value={l}>{t(T_SPELLS.circleOpt, { n: l })}</option>
           ))}
         </select>
-        <input placeholder="Краткое описание" value={customDesc} onChange={(e) => setCustomDesc(e.target.value)} className="grow" style={{ minWidth: 180 }} />
-        <button className="btn btn-ghost btn-sm" onClick={addCustom}>+ Добавить</button>
+        <input placeholder={t(T_SPELLS.shortDescPh)} value={customDesc} onChange={(e) => setCustomDesc(e.target.value)} className="grow" style={{ minWidth: 180 }} />
+        <button className="btn btn-ghost btn-sm" onClick={addCustom}>{t(T_SPELLS.addBtn)}</button>
       </div>
     </Modal>
   );

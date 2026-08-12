@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useStore } from '../../store/store';
 import { DragonHero, ClassEmblem } from '../../svg/icons';
-import { CLASSES_BY_ID } from '../../data/classes';
-import { SPECIES_BY_ID } from '../../data/species';
+import { useCatalog } from '../../i18n/catalog';
+import { LANGS, LANG_LABELS, LANG_LOCALES, useLang } from '../../i18n/lang';
+import { useT } from '../../i18n/tr';
+import { T_COMMON } from '../../i18n/ui/common';
+import { T_HOME } from '../../i18n/ui/home';
 import { buildSampleParty } from '../../data/seed';
 import { derive } from '../../engine/derive';
 import { toast } from '../../components/Toasts';
@@ -21,17 +24,31 @@ export function HomeView() {
   const setView = useStore((s) => s.setView);
   const selectCharacter = useStore((s) => s.selectCharacter);
   const [editingName, setEditingName] = useState(false);
+  const lang = useLang();
+  const t = useT();
+  const { classesById, speciesById } = useCatalog();
 
   const addSample = () => {
     buildSampleParty().forEach((c) => addCharacter(c));
     selectCharacter(undefined);
     sfx.levelUp();
-    toast('Партия прибыла!', 'Четыре героя-примера ждут на экране «Герои»', '🎉');
+    toast(t(T_HOME.partyArrived), t(T_HOME.partyArrivedText), '🎉');
   };
 
   return (
     <div className="col" style={{ gap: 18 }}>
       <section className="panel panel-ornate" style={{ overflow: 'hidden' }}>
+        <div className="lang-row lang-row-float" title={t(T_COMMON.language)}>
+          {LANGS.map((code) => (
+            <button
+              key={code}
+              className={`lang-btn${lang === code ? ' active' : ''}`}
+              onClick={() => updateSettings({ lang: code })}
+            >
+              {LANG_LABELS[code]}
+            </button>
+          ))}
+        </div>
         <div className="row-wrap spread" style={{ alignItems: 'center', gap: 20 }}>
           <div style={{ maxWidth: 520, padding: '10px 0 10px 6px' }}>
             {editingName ? (
@@ -40,7 +57,7 @@ export function HomeView() {
                 defaultValue={settings.campaignName}
                 style={{ fontSize: 26, fontFamily: 'var(--font-display)', fontWeight: 700 }}
                 onBlur={(e) => {
-                  updateSettings({ campaignName: e.target.value.trim() || 'Летопись героев' });
+                  updateSettings({ campaignName: e.target.value.trim() || t(T_HOME.defaultCampaign) });
                   setEditingName(false);
                 }}
                 onKeyDown={(e) => {
@@ -52,20 +69,19 @@ export function HomeView() {
             ) : (
               <h1
                 style={{ fontSize: 'clamp(28px, 4vw, 42px)', cursor: 'pointer' }}
-                title="Нажми, чтобы переименовать кампанию"
+                title={t(T_HOME.renameHint)}
                 onClick={() => setEditingName(true)}
               >
                 {settings.campaignName} <span className="faint" style={{ fontSize: 18 }}>✎</span>
               </h1>
             )}
             <p className="muted" style={{ marginTop: 8, fontSize: 17 }}>
-              Ваша платформа для приключений по правилам D&D 2024: герои, кубы,
-              бой и журнал кампании — всё в одном месте, и ничего не надо переписывать руками.
+              {t(T_HOME.tagline)}
             </p>
             <div className="row-wrap" style={{ marginTop: 18 }}>
               {characters.length > 0 && (
                 <button className="btn btn-primary btn-lg pulse-ready" onClick={() => setView('master')}>
-                  ▶️ Начать игру
+                  {t(T_HOME.startGame)}
                 </button>
               )}
               <button
@@ -75,13 +91,13 @@ export function HomeView() {
                   selectCharacter(undefined);
                 }}
               >
-                ⚔️ Герои
+                {t(T_HOME.heroesBtn)}
               </button>
               <button className="btn btn-ghost btn-lg" onClick={() => setView('dice')}>
-                🎲 Кубики
+                {t(T_HOME.diceBtn)}
               </button>
               <button className="btn btn-ghost btn-lg" onClick={() => setView('library')}>
-                🎓 Как играть?
+                {t(T_HOME.howToPlay)}
               </button>
             </div>
           </div>
@@ -94,10 +110,9 @@ export function HomeView() {
       {characters.length === 0 ? (
         <section className="panel center" style={{ padding: '40px 20px' }}>
           <span style={{ fontSize: 46 }}>🏰</span>
-          <h2 style={{ margin: '10px 0 6px' }}>Начнём приключение?</h2>
+          <h2 style={{ margin: '10px 0 6px' }}>{t(T_HOME.startAdventure)}</h2>
           <p className="muted" style={{ maxWidth: 480, margin: '0 auto 18px' }}>
-            Создайте своего первого героя — мастер создания проведёт по шагам:
-            класс, вид, предыстория, характеристики и снаряжение.
+            {t(T_HOME.firstHeroHint)}
           </p>
           <div className="row-wrap" style={{ justifyContent: 'center' }}>
             <button
@@ -106,20 +121,20 @@ export function HomeView() {
                 setView('characters');
               }}
             >
-              ✨ Создать первого героя
+              {t(T_HOME.createFirstHero)}
             </button>
             <button className="btn btn-ghost btn-lg" onClick={addSample}>
-              🎁 Добавить партию-пример
+              {t(T_HOME.addSampleParty)}
             </button>
           </div>
         </section>
       ) : (
         <section>
-          <div className="section-title">Отряд ({characters.length})</div>
+          <div className="section-title">{t(T_HOME.party, { n: characters.length })}</div>
           <div className="grid-cards">
             {characters.map((char) => {
               const stats = derive(char);
-              const classDef = CLASSES_BY_ID[char.classId];
+              const classDef = classesById[char.classId];
               return (
                 <div
                   key={char.id}
@@ -138,7 +153,7 @@ export function HomeView() {
                       </div>
                       <div className="small muted row" style={{ gap: 6 }}>
                         <ClassEmblem classId={char.classId} size={16} color={classDef.color} />
-                        {classDef.name} {char.level} ур. · {SPECIES_BY_ID[char.speciesId].name}
+                        {classDef.name} {t(T_COMMON.levelOf, { n: char.level })} · {speciesById[char.speciesId].name}
                       </div>
                     </div>
                   </div>
@@ -154,9 +169,9 @@ export function HomeView() {
 
       <div className="grid-2">
         <section className="panel">
-          <div className="section-title">Задания</div>
+          <div className="section-title">{t(T_HOME.quests)}</div>
           {quests.filter((q) => q.status === 'active').length === 0 ? (
-            <div className="muted small">Активных заданий нет — мастер может добавить их в Журнале.</div>
+            <div className="muted small">{t(T_HOME.noQuests)}</div>
           ) : (
             <div className="col" style={{ gap: 8 }}>
               {quests.filter((q) => q.status === 'active').slice(0, 4).map((q) => (
@@ -164,16 +179,16 @@ export function HomeView() {
                   <span style={{ fontSize: 18 }}>🗺️</span>
                   <div>
                     <div style={{ fontWeight: 700 }}>{q.title}</div>
-                    {q.reward && <div className="small faint">Награда: {q.reward}</div>}
+                    {q.reward && <div className="small faint">{t(T_HOME.reward, { r: q.reward })}</div>}
                   </div>
                 </div>
               ))}
             </div>
           )}
           <div className="divider" />
-          <div className="section-title">Последние записи</div>
+          <div className="section-title">{t(T_HOME.recentEntries)}</div>
           {journal.length === 0 ? (
-            <div className="muted small">Журнал пока пуст. Всё важное из приключений — на вкладке «Журнал».</div>
+            <div className="muted small">{t(T_HOME.emptyJournal)}</div>
           ) : (
             <div className="col" style={{ gap: 10 }}>
               {journal.slice(0, 3).map((entry) => (
@@ -181,7 +196,7 @@ export function HomeView() {
                   <div className="row" style={{ gap: 8 }}>
                     <span>{entry.kind === 'session' ? '📖' : entry.kind === 'event' ? '⚡' : '📝'}</span>
                     <span style={{ fontWeight: 700 }}>{entry.title}</span>
-                    <span className="small faint">{new Date(entry.ts).toLocaleDateString('ru')}</span>
+                    <span className="small faint">{new Date(entry.ts).toLocaleDateString(LANG_LOCALES[lang])}</span>
                   </div>
                   <div className="small muted" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {entry.text}
@@ -193,9 +208,9 @@ export function HomeView() {
         </section>
 
         <section className="panel">
-          <div className="section-title">Свежие броски</div>
+          <div className="section-title">{t(T_HOME.recentRolls)}</div>
           {rollLog.length === 0 ? (
-            <div className="muted small">Кости ещё не гремели. Загляните на вкладку «Кубы»!</div>
+            <div className="muted small">{t(T_HOME.noRolls)}</div>
           ) : (
             <div className="col" style={{ gap: 7 }}>
               {rollLog.slice(0, 6).map((roll) => (

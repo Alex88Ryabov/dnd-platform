@@ -1,17 +1,23 @@
 import { Fragment, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { MonsterDef } from '../../model/types';
-import { MONSTERS } from '../../data/monsters';
-import { ABILITIES, ABILITY_SHORT, SIZE_NAMES, crLabel } from '../../data/core';
+import { crLabel } from '../../data/core';
+import { ABILITIES } from '../../data/core';
+import { useCatalog } from '../../i18n/catalog';
+import { useLang } from '../../i18n/lang';
+import { useRules } from '../../i18n/rules';
+import { tr, useT } from '../../i18n/tr';
+import { T_MASTER } from '../../i18n/ui/master';
+import { T_SHEET } from '../../i18n/ui/sheet';
 import { abilityMod } from '../../engine/derive';
 import { checkRoll, formulaRoll } from '../../engine/rolling';
 import { formatModifier } from '../../engine/dice';
 import { Modal } from '../../components/Modal';
 
-// делает кликабельными «+5 к попаданию» и «7 (2d6+2)» в действиях монстра
+// делает кликабельными «+5 к попаданию» и «7 (2d6+2)» в действиях монстра (на всех трёх языках)
 function enhance(text: string, who: string, action: string): ReactNode {
   const parts: ReactNode[] = [];
-  const regex = /([+-]\d+)\s+к попаданию|(\d+)\s*\((\d+[dк]\d+(?:\s*[+-]\s*\d+)?)\)/gi;
+  const regex = /([+-]\d+)\s+(?:к попаданию|до влучання|to hit)|(\d+)\s*\((\d+[dк]\d+(?:\s*[+-]\s*\d+)?)\)/gi;
   let last = 0;
   let match = regex.exec(text);
   let key = 0;
@@ -37,8 +43,8 @@ function enhance(text: string, who: string, action: string): ReactNode {
           key={key++}
           className="chip chip-clickable"
           style={{ margin: '0 2px' }}
-          title="Бросить урон"
-          onClick={() => formulaRoll({ label: `${action} — урон`, formula, who })}
+          title={tr(T_SHEET.damageRollHint)}
+          onClick={() => formulaRoll({ label: tr(T_MASTER.damageSuffix, { action }), formula, who })}
         >
           {avg} ({formula})
         </button>,
@@ -61,33 +67,36 @@ export function BestiaryPanel({ onAdd }: BestiaryPanelProps) {
   const [search, setSearch] = useState('');
   const [maxCr, setMaxCr] = useState<number>(17);
   const [open, setOpen] = useState<MonsterDef | null>(null);
+  const lang = useLang();
+  const t = useT();
+  const { monsters } = useCatalog();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return MONSTERS
+    return monsters
       .filter((m) => m.cr <= maxCr)
       .filter((m) => q.length < 2 || m.name.toLowerCase().includes(q) || m.nameEn.toLowerCase().includes(q) || m.type.toLowerCase().includes(q))
-      .sort((a, b) => a.cr - b.cr || a.name.localeCompare(b.name, 'ru'));
-  }, [search, maxCr]);
+      .sort((a, b) => a.cr - b.cr || a.name.localeCompare(b.name, lang));
+  }, [search, maxCr, monsters, lang]);
 
   return (
     <div className="col" style={{ gap: 14 }}>
       <div className="row-wrap" style={{ gap: 10 }}>
         <input
           style={{ flex: 1, minWidth: 220 }}
-          placeholder="🔍 Найти монстра по имени или типу…"
+          placeholder={t(T_MASTER.bestiarySearchPh)}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <label className="row" style={{ gap: 6 }}>
-          <span className="muted small">ПО до</span>
+          <span className="muted small">{t(T_MASTER.crUpTo)}</span>
           <select value={maxCr} onChange={(e) => setMaxCr(Number(e.target.value))}>
             {CR_OPTIONS.map((cr) => (
               <option key={cr} value={cr}>{crLabel(cr)}</option>
             ))}
           </select>
         </label>
-        <span className="muted small">{filtered.length} существ</span>
+        <span className="muted small">{t(T_MASTER.creaturesCount, { n: filtered.length })}</span>
       </div>
 
       <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 210px), 1fr))' }}>
@@ -104,7 +113,7 @@ export function BestiaryPanel({ onAdd }: BestiaryPanelProps) {
                 <b style={{ fontFamily: 'var(--font-display)', fontSize: 16.5, color: 'var(--parchment)' }}>{monster.name}</b>
                 <div className="small faint">{monster.type}</div>
               </div>
-              <span className="chip chip-active">ПО {crLabel(monster.cr)}</span>
+              <span className="chip chip-active">{t(T_MASTER.crChip, { cr: crLabel(monster.cr) })}</span>
             </div>
             <div className="row-wrap small muted" style={{ gap: 8, marginTop: 8 }}>
               <span>🛡️ {monster.ac}</span>
@@ -125,6 +134,8 @@ export function BestiaryPanel({ onAdd }: BestiaryPanelProps) {
 }
 
 export function StatBlock({ monster, onAdd }: { monster: MonsterDef; onAdd?: (id: string) => void }) {
+  const t = useT();
+  const { abilityShort, sizeNames } = useRules();
   return (
     <div className="col" style={{ gap: 12 }}>
       <div className="row" style={{ gap: 14 }}>
@@ -132,23 +143,23 @@ export function StatBlock({ monster, onAdd }: { monster: MonsterDef; onAdd?: (id
         <div className="grow">
           <h3 style={{ fontSize: 26 }}>{monster.name}</h3>
           <div className="muted small">
-            {SIZE_NAMES[monster.size]} · {monster.type} · {monster.alignment}
+            {sizeNames[monster.size]} · {monster.type} · {monster.alignment}
           </div>
         </div>
-        <span className="chip chip-active" style={{ fontSize: 15 }}>ПО {crLabel(monster.cr)} · {monster.xp} XP</span>
+        <span className="chip chip-active" style={{ fontSize: 15 }}>{t(T_MASTER.crXpChip, { cr: crLabel(monster.cr), xp: monster.xp })}</span>
       </div>
 
       <p className="muted small script" style={{ fontSize: 17 }}>{monster.description}</p>
 
       <div className="row-wrap" style={{ gap: 8 }}>
-        <span className="chip">🛡️ КБ {monster.ac}</span>
+        <span className="chip">{t(T_SHEET.acChip, { n: monster.ac })}</span>
         <span className="chip">
-          ❤️ {monster.hp} хитов
+          {t(T_MASTER.hpChip, { n: monster.hp })}
           <button
             className="chip chip-clickable"
             style={{ marginLeft: 6, padding: '1px 8px' }}
-            title="Бросить хиты по формуле"
-            onClick={() => formulaRoll({ label: `Хиты: ${monster.name}`, formula: monster.hpFormula.replace(/\s/g, ''), who: monster.name })}
+            title={t(T_MASTER.rollHpHint)}
+            onClick={() => formulaRoll({ label: t(T_MASTER.hpRollLabel, { name: monster.name }), formula: monster.hpFormula.replace(/\s/g, ''), who: monster.name })}
           >
             {monster.hpFormula}
           </button>
@@ -164,38 +175,38 @@ export function StatBlock({ monster, onAdd }: { monster: MonsterDef; onAdd?: (id
             <button
               key={a}
               className="chip chip-clickable"
-              title={`Проверка ${ABILITY_SHORT[a]} за монстра`}
-              onClick={() => checkRoll({ label: `Проверка ${ABILITY_SHORT[a]}`, modifier: mod, who: monster.name })}
+              title={t(T_MASTER.monsterCheckHint, { ab: abilityShort[a] })}
+              onClick={() => checkRoll({ label: t(T_MASTER.monsterCheckLabel, { ab: abilityShort[a] }), modifier: mod, who: monster.name })}
             >
-              {ABILITY_SHORT[a]} {score} ({formatModifier(mod)})
+              {abilityShort[a]} {score} ({formatModifier(mod)})
             </button>
           );
         })}
       </div>
 
       <div className="col small" style={{ gap: 4 }}>
-        {monster.saves && <div><span className="gold">Спасброски:</span> <span className="muted">{monster.saves}</span></div>}
-        {monster.skills && <div><span className="gold">Навыки:</span> <span className="muted">{monster.skills}</span></div>}
-        {monster.resistances && <div><span className="gold">Сопротивления:</span> <span className="muted">{monster.resistances}</span></div>}
-        {monster.immunities && <div><span className="gold">Иммунитеты:</span> <span className="muted">{monster.immunities}</span></div>}
-        {monster.vulnerabilities && <div><span className="gold">Уязвимости:</span> <span className="muted">{monster.vulnerabilities}</span></div>}
-        <div><span className="gold">Чувства:</span> <span className="muted">{monster.senses}</span></div>
-        <div><span className="gold">Языки:</span> <span className="muted">{monster.languages}</span></div>
+        {monster.saves && <div><span className="gold">{t(T_MASTER.savesLabel)}</span> <span className="muted">{monster.saves}</span></div>}
+        {monster.skills && <div><span className="gold">{t(T_MASTER.skillsLabel)}</span> <span className="muted">{monster.skills}</span></div>}
+        {monster.resistances && <div><span className="gold">{t(T_MASTER.resistLabel)}</span> <span className="muted">{monster.resistances}</span></div>}
+        {monster.immunities && <div><span className="gold">{t(T_MASTER.immuneLabel)}</span> <span className="muted">{monster.immunities}</span></div>}
+        {monster.vulnerabilities && <div><span className="gold">{t(T_MASTER.vulnerLabel)}</span> <span className="muted">{monster.vulnerabilities}</span></div>}
+        <div><span className="gold">{t(T_MASTER.sensesLabel)}</span> <span className="muted">{monster.senses}</span></div>
+        <div><span className="gold">{t(T_MASTER.langsLabel)}</span> <span className="muted">{monster.languages}</span></div>
       </div>
 
       {monster.traits && monster.traits.length > 0 && (
         <div>
-          <div className="section-title">Особенности</div>
+          <div className="section-title">{t(T_MASTER.traitsTitle)}</div>
           <div className="col small" style={{ gap: 6 }}>
-            {monster.traits.map((t) => (
-              <div key={t.name}><b className="gold">{t.name}.</b> <span className="muted">{t.description}</span></div>
+            {monster.traits.map((trait) => (
+              <div key={trait.name}><b className="gold">{trait.name}.</b> <span className="muted">{trait.description}</span></div>
             ))}
           </div>
         </div>
       )}
 
       <div>
-        <div className="section-title">Действия</div>
+        <div className="section-title">{t(T_MASTER.actionsTitle)}</div>
         <div className="col small" style={{ gap: 8 }}>
           {monster.actions.map((a) => (
             <div key={a.name} style={{ lineHeight: 1.9 }}>
@@ -208,7 +219,7 @@ export function StatBlock({ monster, onAdd }: { monster: MonsterDef; onAdd?: (id
 
       {monster.bonusActions && monster.bonusActions.length > 0 && (
         <div>
-          <div className="section-title">Бонусные действия</div>
+          <div className="section-title">{t(T_MASTER.bonusActionsTitle)}</div>
           <div className="col small" style={{ gap: 6 }}>
             {monster.bonusActions.map((a) => (
               <div key={a.name}><b className="gold">{a.name}.</b> <span className="muted">{enhance(a.description, monster.name, a.name)}</span></div>
@@ -219,7 +230,7 @@ export function StatBlock({ monster, onAdd }: { monster: MonsterDef; onAdd?: (id
 
       {monster.reactions && monster.reactions.length > 0 && (
         <div>
-          <div className="section-title">Реакции</div>
+          <div className="section-title">{t(T_MASTER.reactionsTitle)}</div>
           <div className="col small" style={{ gap: 6 }}>
             {monster.reactions.map((a) => (
               <div key={a.name}><b className="gold">{a.name}.</b> <span className="muted">{enhance(a.description, monster.name, a.name)}</span></div>
@@ -230,7 +241,7 @@ export function StatBlock({ monster, onAdd }: { monster: MonsterDef; onAdd?: (id
 
       {monster.legendary && monster.legendary.length > 0 && (
         <div>
-          <div className="section-title">Легендарные действия</div>
+          <div className="section-title">{t(T_MASTER.legendaryTitle)}</div>
           <div className="col small" style={{ gap: 6 }}>
             {monster.legendary.map((a) => (
               <div key={a.name}><b className="gold">{a.name}.</b> <span className="muted">{enhance(a.description, monster.name, a.name)}</span></div>

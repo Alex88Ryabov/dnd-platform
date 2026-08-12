@@ -1,5 +1,7 @@
 import type { Money, Rarity } from '../model/types';
 import { ITEMS } from '../data/equipment';
+import { tr } from '../i18n/tr';
+import { LOOT_FLAVORS } from '../i18n/ui/engine';
 import { rollDice } from './dice';
 
 export type LootTier = 1 | 2 | 3 | 4;
@@ -10,15 +12,6 @@ export interface LootResult {
   items: { itemId: string; qty: number }[];
   flavor: string;
 }
-
-const FLAVORS = [
-  'Среди пыли и паутины блестит добыча…',
-  'Сундук со скрипом открывается…',
-  'Под грудой костей что-то мерцает…',
-  'Карманы поверженного врага не пусты…',
-  'В тайнике, спрятанном за камнем, вы находите…',
-  'Драконья бережливость вам на руку…',
-];
 
 function sum(dice: number[]): number {
   return dice.reduce((a, b) => a + b, 0);
@@ -133,6 +126,6 @@ export function generateLoot(tier: LootTier, richness: LootRichness): LootResult
   return {
     money,
     items,
-    flavor: FLAVORS[Math.floor(Math.random() * FLAVORS.length)],
+    flavor: tr(LOOT_FLAVORS[Math.floor(Math.random() * LOOT_FLAVORS.length)]),
   };
 }

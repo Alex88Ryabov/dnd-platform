@@ -1,3 +1,6 @@
+import { useT } from '../../i18n/tr';
+import { T_CHARS } from '../../i18n/ui/characters';
+
 interface HpBadgeProps {
   current: number;
   max: number;
@@ -6,6 +9,7 @@ interface HpBadgeProps {
 }
 
 export function HpBadge({ current, max, temp = 0, flash }: HpBadgeProps) {
+  const t = useT();
   const ratio = max > 0 ? Math.max(0, Math.min(1, current / max)) : 0;
   const color = ratio > 0.5
     ? 'linear-gradient(90deg, #4d9c47, #6fbf63)'
@@ -18,7 +22,7 @@ export function HpBadge({ current, max, temp = 0, flash }: HpBadgeProps) {
       <div className="hp-text">
         {current} / {max}
       </div>
-      {temp > 0 && <div className="hp-temp-pill">+{temp} врем.</div>}
+      {temp > 0 && <div className="hp-temp-pill">{t(T_CHARS.tempHp, { n: temp })}</div>}
     </div>
   );
 }
