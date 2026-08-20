@@ -4,6 +4,7 @@ import type {
   Character, CombatState, Combatant, ConditionId, JournalEntry, Money, NpcNote,
   PlaceNote, PlayerReview, Quest, RollLogEntry, SaveSlot, Settings,
 } from '../model/types';
+import { SPECIES } from '../data/species';
 import { uid } from '../engine/dice';
 
 export type ViewId = 'home' | 'characters' | 'dice' | 'master' | 'journal' | 'library';
@@ -394,13 +395,18 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'dnd-platform-v1',
-      version: 2,
-      // v2: появился выбор языка — старым сохранениям проставляем русский
+      version: 3,
       migrate: (persisted) => {
         const state = persisted as AppState;
+        // v2: появился выбор языка — старым сохранениям проставляем русский
         if (state.settings && !state.settings.lang) {
           state.settings.lang = 'ru';
         }
+        // v3: раса стала давать навыки — дописываем героям те, что даются без выбора
+        state.characters?.forEach((char) => {
+          const fromSpecies = SPECIES.find((s) => s.id === char.speciesId)?.skills ?? [];
+          char.proficientSkills = [...new Set([...char.proficientSkills, ...fromSpecies])];
+        });
         return state;
       },
     },

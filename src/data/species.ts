@@ -1,4 +1,5 @@
 import type { SpeciesDef } from '../model/types';
+import { ANY_SKILL } from './core';
 
 // Все игровые расы: 10 основных (PHB 2024) + популярные из других официальных книг,
 // приведённые к стилю правил 2024 (бонусы характеристик даёт предыстория, не раса)
@@ -14,6 +15,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     sizeNote: 'Средний или Маленький — на выбор',
     speed: 30,
+    skillChoices: { count: 1, from: ANY_SKILL },
     traits: [
       { name: 'Находчивость', description: 'После каждого долгого отдыха вы получаете Героическое вдохновение.' },
       { name: 'Умелость', description: 'Владение одним навыком на ваш выбор.' },
@@ -30,6 +32,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     speed: 30,
     darkvision: 60,
+    skillChoices: { count: 1, from: ['insight', 'perception', 'survival'] },
     traits: [
       { name: 'Тёмное зрение', description: 'Видите в тусклом свете в пределах 18 м как при ярком, в темноте — как в тусклом.' },
       { name: 'Фейское наследие', description: 'Преимущество на спасброски от состояния Очарован.' },
@@ -178,6 +181,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     speed: 30,
     darkvision: 60,
+    skillChoices: { count: 2, from: ANY_SKILL },
     traits: [
       { name: 'Фейское наследие', description: 'Преимущество на спасброски от состояния Очарован; магией не усыпить.' },
       { name: 'Универсальность навыков', description: 'Владение двумя навыками на ваш выбор.' },
@@ -193,6 +197,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     speed: 30,
     darkvision: 60,
+    skills: ['intimidation'],
     traits: [
       { name: 'Угрожающий вид', description: 'Владение навыком Запугивание.' },
       { name: 'Неумолимая стойкость', description: 'Когда хиты должны упасть до 0 (если не убило на месте) — остаётесь с 1 хитом. 1 раз в долгий отдых.' },
@@ -211,6 +216,7 @@ export const SPECIES: SpeciesDef[] = [
     sizeNote: 'Средний или Маленький',
     speed: 30,
     darkvision: 60,
+    skills: ['perception', 'stealth'],
     traits: [
       { name: 'Кошачья ловкость', description: 'Раз потратив 0 движения в ход, удвойте скорость до конца хода; восстанавливается, когда пропустите движение.' },
       { name: 'Кошачьи когти', description: 'Скорость лазания 6 м; безоружный удар когтями наносит 1d6 + Сила рубящего урона.' },
@@ -226,6 +232,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     sizeNote: 'Средний или Маленький',
     speed: 30,
+    skillChoices: { count: 2, from: ANY_SKILL },
     traits: [
       { name: 'Пересмешник', description: 'Вы можете воспроизводить любые услышанные звуки и голоса. Отличить подделку — проверка Проницательности против вашего Обмана.' },
       { name: 'Искусное подражание', description: 'Вы можете скопировать любой почерк и ремесленную работу, если видели образец.' },
@@ -241,6 +248,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     sizeNote: 'Средний или Маленький',
     speed: 30,
+    skills: ['survival'],
     traits: [
       { name: 'Панцирь', description: 'Ваш КБ равен 17 (модификатор Ловкости не применяется, доспехи не нужны).' },
       { name: 'Когти', description: 'Безоружный удар наносит 1d6 + Сила рубящего урона.' },
@@ -257,6 +265,7 @@ export const SPECIES: SpeciesDef[] = [
     description: 'Хладнокровные дети болот. Ящеролюды практичны до мозга костей: враг — это опасность, а ещё — обед и материал для щита.',
     size: 'medium',
     speed: 30,
+    skillChoices: { count: 2, from: ['animalHandling', 'medicine', 'nature', 'perception', 'stealth', 'survival'] },
     traits: [
       { name: 'Природная броня', description: 'Без доспехов ваш КБ равен 13 + модификатор Ловкости (щит можно).' },
       { name: 'Укус', description: 'Безоружный удар челюстями наносит 1d6 + Сила колющего урона.' },
@@ -274,6 +283,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     sizeNote: 'Средний или Маленький',
     speed: 30,
+    skills: ['perception'],
     traits: [
       { name: 'Заячий рефлекс', description: 'Добавляйте бонус мастерства к броскам инициативы.' },
       { name: 'Кроличий слух', description: 'Владение навыком Восприятие.' },
@@ -291,6 +301,7 @@ export const SPECIES: SpeciesDef[] = [
     sizeNote: 'Средний или Маленький',
     speed: 30,
     darkvision: 120,
+    skills: ['stealth'],
     traits: [
       { name: 'Полёт', description: 'Скорость полёта равна скорости ходьбы. Нельзя летать в средних и тяжёлых доспехах.' },
       { name: 'Бесшумные перья', description: 'Владение навыком Скрытность.' },
@@ -319,6 +330,7 @@ export const SPECIES: SpeciesDef[] = [
     description: 'Полулюди-полукони бескрайних равнин: быстрые, гордые и связанные с природой крепче любых корней.',
     size: 'medium',
     speed: 40,
+    skillChoices: { count: 1, from: ['animalHandling', 'medicine', 'nature', 'survival'] },
     traits: [
       { name: 'Разгон', description: 'Если после Рывка на 9+ м вы попали атакой ближнего боя — бонусным действием ударьте копытами.' },
       { name: 'Копыта', description: 'Безоружный удар копытами наносит 1d6 + Сила дробящего урона.' },
@@ -349,6 +361,7 @@ export const SPECIES: SpeciesDef[] = [
     description: 'Козлоногие весельчаки Страны Фей. Жизнь сатира — вечный праздник, на который опасности приходят без приглашения.',
     size: 'medium',
     speed: 35,
+    skills: ['performance', 'persuasion'],
     traits: [
       { name: 'Фейское существо', description: 'Вы Фея, а не Гуманоид: заклинания вроде Удержания личности на вас не действуют.' },
       { name: 'Сопротивление магии', description: 'Преимущество на спасброски от заклинаний.' },
@@ -493,6 +506,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     speed: 30,
     darkvision: 60,
+    skills: ['stealth'],
     traits: [
       { name: 'Длинные руки', description: 'Досягаемость ваших атак ближнего боя больше на 1,5 м.' },
       { name: 'Могучее телосложение', description: 'Переносите грузы как существо на размер больше.' },
@@ -510,6 +524,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'small',
     speed: 30,
     darkvision: 60,
+    skillChoices: { count: 1, from: ANY_SKILL, optional: true },
     traits: [
       { name: 'Драконий клич', description: 'Бонусным действием до начала следующего хода: вы и союзники — преимущество на атаки по врагам в 3 м от вас. По бонусу мастерства раз в день.' },
       { name: 'Драконье наследие', description: 'На выбор: владение навыком, преимущество на спасброски от Испуга или один заговор чародея.' },
@@ -539,6 +554,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'small',
     speed: 30,
     darkvision: 120,
+    skills: ['stealth'],
     traits: [
       { name: 'Гномья хитрость', description: 'Преимущество на спасброски Интеллекта, Мудрости и Харизмы.' },
       { name: 'Каменный камуфляж', description: 'Владение Скрытностью; преимущество на Скрытность в каменистой местности.' },
@@ -556,6 +572,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     speed: 30,
     darkvision: 60,
+    skills: ['perception'],
     traits: [
       { name: 'Фейское наследие', description: 'Преимущество на спасброски от Очарования; транс вместо сна (4 часа).' },
       { name: 'Острые чувства', description: 'Владение навыком Восприятие.' },
@@ -571,6 +588,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     speed: 30,
     darkvision: 60,
+    skills: ['perception'],
     traits: [
       { name: 'Дитя моря', description: 'Дышите воздухом и водой; скорость плавания 9 м; сопротивление холоду.' },
       { name: 'Друг моря', description: 'Простое общение с морскими зверями.' },
@@ -587,6 +605,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     speed: 30,
     darkvision: 60,
+    skills: ['perception'],
     traits: [
       { name: 'Некротическое сопротивление', description: 'Сопротивление урону некротикой.' },
       { name: 'Благословение Королевы Воронов', description: 'Бонусным действием телепорт на 9 м (по бонусу мастерства раз в день); с 3-го уровня после телепорта до начала следующего хода — сопротивление всему урону.' },
@@ -636,6 +655,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     sizeNote: 'Средний или Маленький',
     speed: 30,
+    skillChoices: { count: 2, from: ['deception', 'insight', 'intimidation', 'performance', 'persuasion'] },
     traits: [
       { name: 'Смена облика', description: 'Действием измените внешность и голос на любой гуманоидный облик. Снаряжение не меняется.' },
       { name: 'Инстинкты подменыша', description: 'Владение двумя навыками из: Обман, Проницательность, Запугивание, Выступление, Убеждение.' },
@@ -651,6 +671,7 @@ export const SPECIES: SpeciesDef[] = [
     size: 'medium',
     speed: 30,
     darkvision: 60,
+    skillChoices: { count: 1, from: ['acrobatics', 'athletics', 'intimidation', 'perception'] },
     traits: [
       { name: 'Звериный облик', description: 'Бонусным действием «перекиньтесь» на 1 минуту (по бонусу мастерства раз в день): временные хиты 2 × бонус мастерства и дар линии: Крепкошкурый — +1 КБ и 1d6 временных хитов; Клыкастый — укус 1d6 и лечение при попадании раз в облик; Быстроногий — +3 м скорости и Отход бонусным; Дикий охотник — преимущество на Мудрость (Восприятие).' },
       { name: 'Звериные чувства', description: 'Владение одним навыком из: Акробатика, Атлетика, Запугивание, Восприятие.' },
@@ -664,6 +685,7 @@ export const SPECIES: SpeciesDef[] = [
     description: 'Живые созданья из стали и дерева, рождённые для войны, но выбравшие собственный путь. Кованому не нужен сон — только цель.',
     size: 'medium',
     speed: 30,
+    skillChoices: { count: 1, from: ANY_SKILL },
     traits: [
       { name: 'Конструктная стойкость', description: 'Сопротивление яду, преимущество на спасброски от Отравления; иммунитет к болезням; не нужно есть, пить и спать.' },
       { name: 'Встроенная защита', description: '+1 к КБ.' },
@@ -679,6 +701,7 @@ export const SPECIES: SpeciesDef[] = [
     description: 'Воины Астрального моря на серебряных мечах и красных драконах. Псионика гитьянки — оружие не хуже клинка.',
     size: 'medium',
     speed: 30,
+    skillChoices: { count: 1, from: ANY_SKILL },
     traits: [
       { name: 'Астральное знание', description: 'После долгого отдыха выберите владение одним навыком и одним инструментом — псионика подгружает нужные умения.' },
       { name: 'Псионика гитьянки', description: 'Заговор Волшебная рука (невидимая); с 3-го уровня Прыжок, с 5-го Туманный шаг — по 1 разу в долгий отдых без компонентов.' },

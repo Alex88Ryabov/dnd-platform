@@ -1,5 +1,5 @@
 import type {
-  Ability, ConditionId, DamageType, Rarity, Recharge, Size, SkillDef, SpellSchool, WeaponMastery,
+  Ability, ConditionId, DamageType, Rarity, Recharge, Size, SkillDef, SkillId, SpellSchool, WeaponMastery,
 } from '../model/types';
 
 export const ABILITIES: Ability[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -42,6 +42,9 @@ export const SKILLS: SkillDef[] = [
   { id: 'performance', name: 'Выступление', ability: 'cha' },
   { id: 'persuasion', name: 'Убеждение', ability: 'cha' },
 ];
+
+// «любой навык на выбор» — для рас вроде полуэльфа и кенку
+export const ANY_SKILL: SkillId[] = SKILLS.map((s) => s.id);
 
 export const CONDITIONS: Record<ConditionId, { name: string; icon: string; description: string }> = {
   blinded: { name: 'Ослеплён', icon: '🙈', description: 'Не видит; проверки, требующие зрения, автоматически проваливаются. Атаки по нему — с преимуществом, его атаки — с помехой.' },

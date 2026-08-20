@@ -42,9 +42,10 @@ export function buildNewCharacter(input: CreationInput): Character {
 }
 
 function assembleCharacter(input: CreationInput): Character {
-  const { classesById, backgroundsById } = getCatalog();
+  const { classesById, backgroundsById, speciesById } = getCatalog();
   const classDef = classesById[input.classId];
   const background = backgroundsById[input.backgroundId];
+  const species = speciesById[input.speciesId];
   const level = Math.max(1, Math.min(20, input.level ?? 1));
   const now = new Date().toISOString();
 
@@ -52,6 +53,7 @@ function assembleCharacter(input: CreationInput): Character {
   if (background) {
     background.skills.forEach((s) => skillSet.add(s));
   }
+  species?.skills?.forEach((s) => skillSet.add(s));
 
   const featIds: string[] = [];
   const backgroundFeat = background?.featId ?? input.backgroundFeatId;

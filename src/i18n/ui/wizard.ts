@@ -109,8 +109,10 @@ export const T_WIZARD = {
   rollsLabel: { ru: 'Броски: {s}', uk: 'Кидки: {s}', en: 'Rolls: {s}' },
   bonusFromBg: { ru: '+{n} предыстория', uk: '+{n} передісторія', en: '+{n} background' },
 
-  chooseSkills: { ru: 'Выберите {n} навыка класса.', uk: 'Оберіть {n} навички класу.', en: 'Choose {n} class skills.' },
-  bgGives: { ru: 'Предыстория уже даёт:', uk: 'Передісторія вже дає:', en: 'Your background already grants:' },
+  skillsGrantedLabel: { ru: 'Даёт сразу:', uk: 'Дає одразу:', en: 'Grants:' },
+  skillsChooseLabel: { ru: 'На выбор:', uk: 'На вибір:', en: 'Choose:' },
+  skillsOptional: { ru: 'по желанию', uk: 'за бажанням', en: 'optional' },
+  skillsTotal: { ru: 'Итого навыков: {n}', uk: 'Разом навичок: {n}', en: 'Total skills: {n}' },
   chosenOf: { ru: 'Выбрано {a} из {b}', uk: 'Обрано {a} з {b}', en: 'Chosen {a} of {b}' },
   expertiseTitle: {
     ru: 'Компетентность (два навыка с двойным бонусом)',

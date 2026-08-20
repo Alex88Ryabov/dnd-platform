@@ -56,6 +56,13 @@ export interface SkillDef {
   ability: Ability;
 }
 
+export interface SkillChoiceDef {
+  count: number;
+  from: SkillId[];
+  // выбор необязателен: у кобольда навык — лишь один из вариантов черты
+  optional?: boolean;
+}
+
 export interface ClassFeature {
   level: number;
   name: string;
@@ -108,7 +115,7 @@ export interface ClassDef {
   hitDie: 6 | 8 | 10 | 12;
   primaryAbilities: Ability[];
   saveProficiencies: Ability[];
-  skillChoices: { count: number; from: SkillId[] };
+  skillChoices: SkillChoiceDef;
   weaponProficiencies: string;
   armorTraining: string;
   toolProficiencies?: string;
@@ -138,6 +145,9 @@ export interface SpeciesDef {
   sizeNote?: string;
   speed: number;
   darkvision?: number;
+  // навыки от расы: выданные сразу и выбор из списка
+  skills?: SkillId[];
+  skillChoices?: SkillChoiceDef;
   traits: SpeciesTrait[];
   // раса из «основного набора» (PHB 2024) — показывается первой при создании героя
   core?: boolean;
