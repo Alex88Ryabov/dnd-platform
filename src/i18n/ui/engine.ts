@@ -30,6 +30,8 @@ export const T_ENGINE = {
   hpAverage: { ru: 'Хиты по среднему: {n}', uk: 'Хіти за середнім: {n}', en: 'Average HP: {n}' },
   featGained: { ru: 'Черта: {name}', uk: 'Риса: {name}', en: 'Feat: {name}' },
   featureGained: { ru: 'Умение: {name}', uk: 'Уміння: {name}', en: 'Feature: {name}' },
+  skillsGained: { ru: 'Новые навыки: {s}', uk: 'Нові навички: {s}', en: 'New skills: {s}' },
+  expertiseGained: { ru: 'Компетентность: {s}', uk: 'Компетентність: {s}', en: 'Expertise: {s}' },
   preparedSpells: {
     ru: 'Подготовленных заклинаний: {n} (было {m}).',
     uk: 'Підготовлених заклинань: {n} (було {m}).',

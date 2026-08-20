@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Ability, Character } from '../../model/types';
+import type { Ability, Character, SkillId } from '../../model/types';
 import { useStore } from '../../store/store';
 import type { AsiDecision } from '../../engine/levelup';
 import { applyLevelUp, previewLevelUp } from '../../engine/levelup';
@@ -11,6 +11,8 @@ import { useRules } from '../../i18n/rules';
 import { useT } from '../../i18n/tr';
 import { T_WIZARD } from '../../i18n/ui/wizard';
 import { rollDie } from '../../engine/dice';
+import { skillPool, toggleChoice } from '../../engine/skills';
+import { SkillPicker } from './SkillPicker';
 import { Modal } from '../../components/Modal';
 import { fireConfetti } from '../../components/Confetti';
 import { toast } from '../../components/Toasts';
@@ -21,7 +23,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Phase = 'preview' | 'hp' | 'subclass' | 'asi' | 'style' | 'done';
+type Phase = 'preview' | 'hp' | 'skills' | 'subclass' | 'asi' | 'style' | 'done';
 
 export function LevelUpWizard({ character, onClose }: Props) {
   const updateCharacter = useStore((s) => s.updateCharacter);
@@ -41,6 +43,8 @@ export function LevelUpWizard({ character, onClose }: Props) {
   const [asiSecond, setAsiSecond] = useState<Ability>('con');
   const [featId, setFeatId] = useState('tough');
   const [styleId, setStyleId] = useState('');
+  const [newSkills, setNewSkills] = useState<SkillId[]>([]);
+  const [newExpertise, setNewExpertise] = useState<SkillId[]>([]);
   const [summary, setSummary] = useState<string[]>([]);
 
   if (!preview) {
@@ -53,9 +57,21 @@ export function LevelUpWizard({ character, onClose }: Props) {
     .some((f) => f.level === preview.newLevel && f.name === 'Боевой стиль')
     && !character.fightingStyleId;
 
+  const { skillPick, expertisePick } = preview;
+  const skillOptions = skillPool(
+    skillPick.from ?? classDef.skillChoices.from,
+    character.proficientSkills,
+    skillPick.count,
+  );
+  const expertiseOptions = [...character.proficientSkills, ...newSkills]
+    .filter((s) => !character.expertiseSkills.includes(s))
+    .filter((s) => !expertisePick.from || expertisePick.from.includes(s));
+  const picksDone = newSkills.length === skillPick.count && newExpertise.length === expertisePick.count;
+
   const phaseOrder: Phase[] = [
     'preview',
     'hp',
+    ...(skillPick.count + expertisePick.count > 0 ? ['skills' as Phase] : []),
     ...(preview.needsSubclass ? ['subclass' as Phase] : []),
     ...(preview.isAsi ? ['asi' as Phase] : []),
     ...(gainsStyle ? ['style' as Phase] : []),
@@ -87,6 +103,8 @@ export function LevelUpWizard({ character, onClose }: Props) {
         hpMode,
         subclassId: subclassId ?? undefined,
         asi,
+        skills: newSkills,
+        expertise: newExpertise,
       });
       const styled = styleId ? { ...next, fightingStyleId: styleId } : next;
       notes = styled.levelLog[styled.levelLog.length - 1]?.notes ?? [];
@@ -204,6 +222,35 @@ export function LevelUpWizard({ character, onClose }: Props) {
                 goNextFrom('hp');
               }}
             >
+              {t(T_WIZARD.nextBtn)}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === 'skills' && (
+        <div className="col" style={{ gap: 12 }}>
+          {skillPick.count > 0 && (
+            <SkillPicker
+              title={t(T_WIZARD.luNewSkills)}
+              options={skillOptions}
+              count={skillPick.count}
+              chosen={newSkills}
+              onToggle={(id) => setNewSkills(toggleChoice(newSkills, skillPick.count, id))}
+            />
+          )}
+          {expertisePick.count > 0 && (
+            <SkillPicker
+              title={t(T_WIZARD.expertiseTitle)}
+              options={expertiseOptions}
+              count={expertisePick.count}
+              star
+              chosen={newExpertise}
+              onToggle={(id) => setNewExpertise(toggleChoice(newExpertise, expertisePick.count, id))}
+            />
+          )}
+          <div className="row" style={{ justifyContent: 'flex-end' }}>
+            <button className="btn btn-primary" disabled={!picksDone} onClick={() => goNextFrom('skills')}>
               {t(T_WIZARD.nextBtn)}
             </button>
           </div>

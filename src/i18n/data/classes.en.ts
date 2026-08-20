@@ -411,7 +411,7 @@ export const CLASSES_EN: ClassesL10n = {
     tagline: 'Nature’s voice and claws',
     description: 'A keeper of nature’s ancient powers: commands the elements, speaks with beasts, and turns into a beast themselves.',
     weaponProficiencies: 'Simple weapons',
-    armorTraining: 'Light armor, Shields (Druids don’t wear metal)',
+    armorTraining: 'Light armor, Shields',
     toolProficiencies: 'Herbalism Kit',
     subclassLabel: 'Circle',
     features: [

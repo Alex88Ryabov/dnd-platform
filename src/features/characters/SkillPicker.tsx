@@ -11,11 +11,13 @@ interface Props {
   options?: SkillId[];
   count?: number;
   optional?: boolean;
+  // компетентность помечается звёздочкой
+  star?: boolean;
   chosen?: SkillId[];
   onToggle?: (skillId: SkillId) => void;
 }
 
-export function SkillPicker({ title, granted = [], options = [], count = 0, optional, chosen = [], onToggle }: Props) {
+export function SkillPicker({ title, granted = [], options = [], count = 0, optional, star, chosen = [], onToggle }: Props) {
   const t = useT();
   const { abilityShort, skillNames } = useRules();
 
@@ -45,7 +47,7 @@ export function SkillPicker({ title, granted = [], options = [], count = 0, opti
                   style={{ fontSize: 14.5, padding: '7px 14px' }}
                   onClick={() => onToggle?.(skillId)}
                 >
-                  {skillNames[skillId]} <span className="faint">({abilityShort[def.ability]})</span>
+                  {star ? '★ ' : ''}{skillNames[skillId]} <span className="faint">({abilityShort[def.ability]})</span>
                 </button>
               );
             })}

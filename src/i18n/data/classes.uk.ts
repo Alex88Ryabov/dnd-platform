@@ -412,7 +412,7 @@ export const CLASSES_UK: ClassesL10n = {
     tagline: 'Голос і кігті природи',
     description: 'Охоронець давніх сил природи: повеліває стихіями, розмовляє зі звірами й сам обертається на звіра.',
     weaponProficiencies: 'Проста зброя',
-    armorTraining: 'Легкі обладунки, щити (друїди не носять метал)',
+    armorTraining: 'Легкі обладунки, щити',
     toolProficiencies: 'Набір травника',
     subclassLabel: 'Круг',
     features: [

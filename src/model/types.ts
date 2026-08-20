@@ -63,6 +63,13 @@ export interface SkillChoiceDef {
   optional?: boolean;
 }
 
+// навыки, которые класс даёт не на 1-м уровне; без from — любой навык
+export interface LevelSkillGrant {
+  level: number;
+  count: number;
+  from?: SkillId[];
+}
+
 export interface ClassFeature {
   level: number;
   name: string;
@@ -116,6 +123,10 @@ export interface ClassDef {
   primaryAbilities: Ability[];
   saveProficiencies: Ability[];
   skillChoices: SkillChoiceDef;
+  // дополнительные владения навыками по уровням (варвар: «Первобытное знание»)
+  skillsByLevel?: LevelSkillGrant[];
+  // компетентность по уровням (плут, бард, следопыт, волшебник)
+  expertiseByLevel?: LevelSkillGrant[];
   weaponProficiencies: string;
   armorTraining: string;
   toolProficiencies?: string;

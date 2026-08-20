@@ -16,6 +16,7 @@ export const CLASSES_CASTERS: ClassDef[] = [
       count: 3,
       from: ['athletics', 'acrobatics', 'sleightOfHand', 'stealth', 'arcana', 'history', 'investigation', 'nature', 'religion', 'animalHandling', 'insight', 'medicine', 'perception', 'survival', 'deception', 'intimidation', 'performance', 'persuasion'],
     },
+    expertiseByLevel: [{ level: 2, count: 2 }, { level: 9, count: 2 }],
     weaponProficiencies: 'Простое оружие',
     armorTraining: 'Лёгкие доспехи',
     toolProficiencies: 'Три музыкальных инструмента',
@@ -167,7 +168,7 @@ export const CLASSES_CASTERS: ClassDef[] = [
     saveProficiencies: ['int', 'wis'],
     skillChoices: { count: 2, from: ['arcana', 'animalHandling', 'insight', 'medicine', 'nature', 'perception', 'religion', 'survival'] },
     weaponProficiencies: 'Простое оружие',
-    armorTraining: 'Лёгкие доспехи, щиты (друиды не носят металл)',
+    armorTraining: 'Лёгкие доспехи, щиты',
     toolProficiencies: 'Набор травника',
     startingEquipment: [
       { itemId: 'leather-armor', qty: 1 },
@@ -392,6 +393,7 @@ export const CLASSES_CASTERS: ClassDef[] = [
     primaryAbilities: ['int'],
     saveProficiencies: ['int', 'wis'],
     skillChoices: { count: 2, from: ['arcana', 'history', 'insight', 'investigation', 'medicine', 'nature', 'religion'] },
+    expertiseByLevel: [{ level: 2, count: 1, from: ['arcana', 'history', 'investigation', 'medicine', 'nature', 'religion'] }],
     weaponProficiencies: 'Простое оружие',
     armorTraining: 'Без доспехов',
     startingEquipment: [

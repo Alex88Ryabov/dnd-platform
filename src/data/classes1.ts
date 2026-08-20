@@ -13,6 +13,9 @@ export const CLASSES_MARTIAL: ClassDef[] = [
     primaryAbilities: ['str'],
     saveProficiencies: ['str', 'con'],
     skillChoices: { count: 2, from: ['animalHandling', 'athletics', 'intimidation', 'nature', 'perception', 'survival'] },
+    skillsByLevel: [
+      { level: 3, count: 1, from: ['animalHandling', 'athletics', 'intimidation', 'nature', 'perception', 'survival'] },
+    ],
     weaponProficiencies: 'Простое и воинское оружие',
     armorTraining: 'Лёгкие и средние доспехи, щиты',
     startingEquipment: [
@@ -247,6 +250,7 @@ export const CLASSES_MARTIAL: ClassDef[] = [
     primaryAbilities: ['dex'],
     saveProficiencies: ['dex', 'int'],
     skillChoices: { count: 4, from: ['acrobatics', 'athletics', 'deception', 'insight', 'intimidation', 'investigation', 'perception', 'persuasion', 'sleightOfHand', 'stealth'] },
+    expertiseByLevel: [{ level: 1, count: 2 }, { level: 6, count: 2 }],
     weaponProficiencies: 'Простое оружие и воинское со свойствами Фехтовальное или Лёгкое',
     armorTraining: 'Лёгкие доспехи',
     toolProficiencies: 'Воровские инструменты',
@@ -407,6 +411,7 @@ export const CLASSES_MARTIAL: ClassDef[] = [
     primaryAbilities: ['dex', 'wis'],
     saveProficiencies: ['str', 'dex'],
     skillChoices: { count: 3, from: ['animalHandling', 'athletics', 'insight', 'investigation', 'nature', 'perception', 'stealth', 'survival'] },
+    expertiseByLevel: [{ level: 2, count: 1 }, { level: 9, count: 2 }],
     weaponProficiencies: 'Простое и воинское оружие',
     armorTraining: 'Лёгкие и средние доспехи, щиты',
     startingEquipment: [

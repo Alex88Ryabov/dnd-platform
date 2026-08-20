@@ -115,10 +115,11 @@ export const T_WIZARD = {
   skillsTotal: { ru: 'Итого навыков: {n}', uk: 'Разом навичок: {n}', en: 'Total skills: {n}' },
   chosenOf: { ru: 'Выбрано {a} из {b}', uk: 'Обрано {a} з {b}', en: 'Chosen {a} of {b}' },
   expertiseTitle: {
-    ru: 'Компетентность (два навыка с двойным бонусом)',
-    uk: 'Компетентність (дві навички з подвійним бонусом)',
-    en: 'Expertise (two skills with double bonus)',
+    ru: 'Компетентность (двойной бонус мастерства)',
+    uk: 'Компетентність (подвійний бонус майстерності)',
+    en: 'Expertise (double proficiency bonus)',
   },
+  luNewSkills: { ru: 'Новые навыки', uk: 'Нові навички', en: 'New skills' },
 
   cantripsChosen: { ru: 'Заговоры — выбрано {a} из {b}', uk: 'Замовляння — обрано {a} з {b}', en: 'Cantrips — {a} of {b} chosen' },
   spellsChosen: {

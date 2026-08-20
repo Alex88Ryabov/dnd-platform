@@ -1,10 +1,12 @@
-import type { Ability, Character, ClassFeature } from '../model/types';
+import type { Ability, Character, ClassFeature, SkillId } from '../model/types';
 import { getCatalog } from '../i18n/catalog';
 import { rules } from '../i18n/rules';
 import { tr } from '../i18n/tr';
 import { T_ENGINE } from '../i18n/ui/engine';
 import { dieAverage } from './dice';
 import { derive } from './derive';
+import { grantAtLevel } from './skills';
+import type { SkillGrantTotal } from './skills';
 
 export interface LevelUpPreview {
   newLevel: number;
@@ -15,6 +17,9 @@ export interface LevelUpPreview {
   needsSubclass: boolean;
   isAsi: boolean;
   spellNotes: string[];
+  // навыки и компетентность, которые класс даёт именно на этом уровне
+  skillPick: SkillGrantTotal;
+  expertisePick: SkillGrantTotal;
 }
 
 export type AsiDecision =
@@ -28,6 +33,8 @@ export interface LevelUpDecisions {
   hpMode: 'roll' | 'avg';
   subclassId?: string;
   asi?: AsiDecision;
+  skills?: SkillId[];
+  expertise?: SkillId[];
 }
 
 export function previewLevelUp(char: Character): LevelUpPreview | null {
@@ -69,6 +76,8 @@ export function previewLevelUp(char: Character): LevelUpPreview | null {
     needsSubclass,
     isAsi: classDef.asiLevels.includes(newLevel),
     spellNotes,
+    skillPick: grantAtLevel(classDef.skillsByLevel, newLevel),
+    expertisePick: grantAtLevel(classDef.expertiseByLevel, newLevel),
   };
 }
 
@@ -118,6 +127,16 @@ export function applyLevelUp(char: Character, decisions: LevelUpDecisions): Char
       next.customFeats.push({ name: asi.name, description: asi.description });
       notes.push(tr(T_ENGINE.featGained, { name: asi.name }));
     }
+  }
+
+  const skillNames = rules().skillNames;
+  if (decisions.skills?.length) {
+    next.proficientSkills = [...new Set([...char.proficientSkills, ...decisions.skills])];
+    notes.push(tr(T_ENGINE.skillsGained, { s: decisions.skills.map((s) => skillNames[s]).join(', ') }));
+  }
+  if (decisions.expertise?.length) {
+    next.expertiseSkills = [...new Set([...char.expertiseSkills, ...decisions.expertise])];
+    notes.push(tr(T_ENGINE.expertiseGained, { s: decisions.expertise.map((s) => skillNames[s]).join(', ') }));
   }
 
   const gainedFeatures = classDef.features.filter((f) => f.level === newLevel);

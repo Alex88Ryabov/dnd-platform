@@ -16,7 +16,7 @@ import { STANDARD_ARRAY, rollAbilityScore } from '../../engine/dice';
 import { abilityMod } from '../../engine/derive';
 import { formatModifier } from '../../engine/dice';
 import { buildNewCharacter, maxSpellCircle } from '../../engine/creation';
-import { skillPool } from '../../engine/skills';
+import { grantsUpTo, skillPool, toggleChoice } from '../../engine/skills';
 import { SkillPicker } from './SkillPicker';
 import { PortraitBadge } from '../../components/PortraitBadge';
 import { fileToPortraitImage } from '../../components/portraitUtil';
@@ -102,7 +102,16 @@ export function CreationWizard({ onClose }: Props) {
   const chosenSpeciesSkills = speciesSkills.filter((s) => !grantedSkills.includes(s));
   const chosenClassSkills = skills.filter((s) => !grantedSkills.includes(s) && !chosenSpeciesSkills.includes(s));
   const allSkills: SkillId[] = [...grantedSkills, ...chosenSpeciesSkills, ...chosenClassSkills];
-  const chosenExpertise = expertise.filter((s) => allSkills.includes(s));
+  // класс может добавлять навыки и компетентность не только на 1-м уровне
+  const classSkillGrant = grantsUpTo(classDef?.skillsByLevel, startLevel);
+  const classSkillCount = (classDef?.skillChoices.count ?? 0) + classSkillGrant.count;
+  const classSkillFrom = classDef && classSkillGrant.from
+    ? [...new Set([...classDef.skillChoices.from, ...classSkillGrant.from])]
+    : classDef?.skillChoices.from ?? [];
+  const expertiseGrant = grantsUpTo(classDef?.expertiseByLevel, startLevel);
+  const expertiseFrom = expertiseGrant.from;
+  const expertiseOptions = expertiseFrom ? allSkills.filter((s) => expertiseFrom.includes(s)) : allSkills;
+  const chosenExpertise = expertise.filter((s) => expertiseOptions.includes(s));
 
   const bonuses = useMemo(() => {
     const map: Record<Ability, number> = { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
@@ -160,8 +169,8 @@ export function CreationWizard({ onClose }: Props) {
         }
         const okSpecies = !speciesChoice || speciesChoice.optional
           || chosenSpeciesSkills.length === speciesChoice.count;
-        const okSkills = chosenClassSkills.length === classDef.skillChoices.count;
-        const okExpertise = classId !== 'rogue' || chosenExpertise.length === 2;
+        const okSkills = chosenClassSkills.length === classSkillCount;
+        const okExpertise = chosenExpertise.length === expertiseGrant.count;
         const okStyle = !needsStyle || fightingStyleId !== '';
         return okSpecies && okSkills && okExpertise && okStyle;
       }
@@ -187,15 +196,6 @@ export function CreationWizard({ onClose }: Props) {
     setAssigned({ str: null, dex: null, con: null, int: null, wis: null, cha: null });
   };
 
-  const toggleSkill = (chosen: SkillId[], setChosen: (next: SkillId[]) => void, limit: number, skillId: SkillId) => {
-    if (chosen.includes(skillId)) {
-      setChosen(chosen.filter((s) => s !== skillId));
-      setExpertise(expertise.filter((s) => s !== skillId));
-    } else if (chosen.length < limit) {
-      setChosen([...chosen, skillId]);
-    }
-  };
-
   const create = () => {
     if (!classId || !speciesId || !backgroundId) {
       return;
@@ -212,7 +212,7 @@ export function CreationWizard({ onClose }: Props) {
       customBackgroundTool: isCustomBg ? (customBgTool.trim() || undefined) : undefined,
       abilities: finalAbilities,
       skills: allSkills,
-      expertise: classId === 'rogue' ? chosenExpertise : undefined,
+      expertise: chosenExpertise,
       fightingStyleId: fightingStyleId || undefined,
       extraFeatId: speciesId === 'human' ? extraFeatId : undefined,
       cantrips,
@@ -369,7 +369,14 @@ export function CreationWizard({ onClose }: Props) {
           <div className="panel" style={{ padding: 14, maxWidth: 480 }}>
             <div className="row-wrap" style={{ gap: 10, alignItems: 'center' }}>
               <span className="muted small">{t(T_WIZARD.startLevel)}</span>
-              <select value={startLevel} onChange={(e) => setStartLevel(Number(e.target.value))}>
+              <select
+                value={startLevel}
+                onChange={(e) => {
+                  setStartLevel(Number(e.target.value));
+                  setSkills([]);
+                  setExpertise([]);
+                }}
+              >
                 {Array.from({ length: 20 }, (_, i) => i + 1).map((l) => (
                   <option key={l} value={l}>{l}</option>
                 ))}
@@ -817,7 +824,7 @@ export function CreationWizard({ onClose }: Props) {
               count={speciesChoice?.count}
               optional={speciesChoice?.optional}
               chosen={chosenSpeciesSkills}
-              onToggle={(id) => toggleSkill(chosenSpeciesSkills, setSpeciesSkills, speciesChoice?.count ?? 0, id)}
+              onToggle={(id) => setSpeciesSkills(toggleChoice(chosenSpeciesSkills, speciesChoice?.count ?? 0, id))}
             />
           )}
 
@@ -830,38 +837,23 @@ export function CreationWizard({ onClose }: Props) {
 
           <SkillPicker
             title={`${t(T_WIZARD.stepClass)}: ${classDef.name}`}
-            options={skillPool(classDef.skillChoices.from, [...grantedSkills, ...chosenSpeciesSkills], classDef.skillChoices.count)}
-            count={classDef.skillChoices.count}
+            options={skillPool(classSkillFrom, [...grantedSkills, ...chosenSpeciesSkills], classSkillCount)}
+            count={classSkillCount}
             chosen={chosenClassSkills}
-            onToggle={(id) => toggleSkill(chosenClassSkills, setSkills, classDef.skillChoices.count, id)}
+            onToggle={(id) => setSkills(toggleChoice(chosenClassSkills, classSkillCount, id))}
           />
 
           <div className="small gold">{t(T_WIZARD.skillsTotal, { n: allSkills.length })}</div>
 
-          {classId === 'rogue' && (
-            <div className="panel" style={{ padding: 14 }}>
-              <div className="section-title">{t(T_WIZARD.expertiseTitle)}</div>
-              <div className="row-wrap" style={{ gap: 8 }}>
-                {allSkills.map((skillId) => {
-                  const active = chosenExpertise.includes(skillId);
-                  return (
-                    <button
-                      key={skillId}
-                      className={`chip chip-clickable${active ? ' chip-active' : ''}`}
-                      onClick={() => {
-                        if (active) {
-                          setExpertise(chosenExpertise.filter((s) => s !== skillId));
-                        } else if (chosenExpertise.length < 2) {
-                          setExpertise([...chosenExpertise, skillId]);
-                        }
-                      }}
-                    >
-                      ★ {skillNames[skillId]}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+          {expertiseGrant.count > 0 && (
+            <SkillPicker
+              title={t(T_WIZARD.expertiseTitle)}
+              options={expertiseOptions}
+              count={expertiseGrant.count}
+              star
+              chosen={chosenExpertise}
+              onToggle={(id) => setExpertise(toggleChoice(chosenExpertise, expertiseGrant.count, id))}
+            />
           )}
 
           {needsStyle && (
