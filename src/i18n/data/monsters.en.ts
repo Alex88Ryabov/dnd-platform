@@ -42,9 +42,6 @@ export const MONSTERS_EN: MonstersL10n = {
     senses: 'Blindsight 60 ft, passive Perception 11',
     languages: '—',
     description: 'A skittish night flier that “sees” with its ears. Adores caves, attics, and the towers of old castles.',
-    traits: [
-      { name: 'Echolocation', description: 'The bat can’t use its blindsight while it can’t hear.' },
-    ],
     actions: [
       { name: 'Bite', description: '+4 to hit, reach 5 ft. Hit: 1 piercing damage.' },
     ],
@@ -71,16 +68,15 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Beast',
     alignment: 'Unaligned',
     speed: '40 ft (12 m)',
-    skills: 'Perception +3, Stealth +4',
-    senses: 'Passive Perception 13',
+    skills: 'Perception +5, Stealth +4',
+    senses: 'Darkvision 60 ft, passive Perception 15',
     languages: '—',
     description: 'A gray hunter of the woods that never attacks alone. If you hear a howl, know this: the whole pack is near.',
     traits: [
-      { name: 'Keen Hearing and Smell', description: 'The wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell.' },
       { name: 'Pack Tactics', description: 'The wolf has advantage on an attack roll if an ally of the wolf is within 5 feet of the target and isn’t incapacitated.' },
     ],
     actions: [
-      { name: 'Bite', description: '+4 to hit, reach 5 ft. Hit: 7 (2d4+2) piercing damage. If the target is a creature, it must succeed on a DC 11 Strength saving throw or be knocked prone.' },
+      { name: 'Bite', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) piercing damage. If the target is a Medium or smaller creature, it is knocked prone.' },
     ],
   },
   'dire-wolf': {
@@ -88,16 +84,15 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Beast',
     alignment: 'Unaligned',
     speed: '50 ft (15 m)',
-    skills: 'Perception +3, Stealth +4',
-    senses: 'Passive Perception 13',
+    skills: 'Perception +5, Stealth +4',
+    senses: 'Darkvision 60 ft, passive Perception 15',
     languages: '—',
     description: 'A wolf the size of a pony, leader of the forest packs. Its howl can be heard for miles.',
     traits: [
-      { name: 'Keen Hearing and Smell', description: 'The wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell.' },
       { name: 'Pack Tactics', description: 'The wolf has advantage on an attack roll if an ally of the wolf is within 5 feet of the target and isn’t incapacitated.' },
     ],
     actions: [
-      { name: 'Bite', description: '+5 to hit, reach 5 ft. Hit: 10 (2d6+3) piercing damage. If the target is a creature, it must succeed on a DC 13 Strength saving throw or be knocked prone.' },
+      { name: 'Bite', description: '+5 to hit, reach 5 ft. Hit: 8 (1d10+3) piercing damage. If the target is a Large or smaller creature, it is knocked prone.' },
     ],
   },
   'boar': {
@@ -125,9 +120,9 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: '—',
     description: 'The lumbering master of the forest, mighty and grumbly. Leave its honey alone, and it will most likely leave you alone.',
     actions: [
-      { name: 'Multiattack', description: 'The bear makes one Bite attack and one Claws attack.' },
+      { name: 'Multiattack', description: 'The bear makes one Bite attack and one Claw attack.' },
       { name: 'Bite', description: '+5 to hit, reach 5 ft. Hit: 7 (1d8+3) piercing damage.' },
-      { name: 'Claws', description: '+5 to hit, reach 5 ft. Hit: 5 (1d4+3) slashing damage. If the target is a Huge or smaller creature, it is knocked prone.' },
+      { name: 'Claw', description: '+5 to hit, reach 5 ft. Hit: 5 (1d4+3) slashing damage. If the target is a Large or smaller creature, it is knocked prone.' },
     ],
   },
   'giant-spider': {
@@ -135,18 +130,17 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Beast',
     alignment: 'Unaligned',
     speed: '30 ft (9 m), climb 30 ft (9 m)',
-    skills: 'Stealth +7',
-    senses: 'Blindsight 10 ft, darkvision 60 ft, passive Perception 10',
+    skills: 'Perception +4, Stealth +7',
+    senses: 'Darkvision 60 ft, passive Perception 14',
     languages: '—',
     description: 'A spider the size of a wagon, master of sticky traps. Cocoons glint in its webs — better not to touch them.',
     traits: [
-      { name: 'Spider Climb', description: 'The spider can climb any surface, including ceilings, without an ability check.' },
-      { name: 'Web Sense', description: 'While in contact with a web, the spider knows the exact location of any other creature in contact with the same web.' },
-      { name: 'Web Walker', description: 'The spider ignores movement restrictions caused by webbing.' },
+      { name: 'Spider Climb', description: 'The spider can climb difficult surfaces, including ceilings, without an ability check.' },
+      { name: 'Web Walker', description: 'The spider ignores movement restrictions caused by webs and knows the location of any other creature in contact with the same web.' },
     ],
     actions: [
-      { name: 'Bite', description: '+5 to hit, reach 5 ft. Hit: 7 (1d8+3) piercing damage, and the target makes a DC 11 Constitution saving throw, taking 9 (2d8) poison damage on a failed save, or half as much damage on a successful one. If the poison reduces the target to 0 hit points, the target is stable but Paralyzed by the poison for 1 hour.' },
-      { name: 'Web (Recharge 5–6)', description: '+5 to hit, range 30/60 ft. Hit: the target is Restrained by webbing. As an action, the target can escape with a DC 12 Strength check. The webbing can also be destroyed (AC 10, 5 hit points; immunity to bludgeoning, poison, and psychic damage).' },
+      { name: 'Bite', description: '+5 to hit, reach 5 ft. Hit: 7 (1d8+3) piercing damage plus 7 (2d6) poison damage.' },
+      { name: 'Web (Recharge 5–6)', description: 'One creature within 60 feet must succeed on a DC 13 Dexterity saving throw or be restrained by webbing until it is destroyed (AC 10; 5 HP; vulnerable to fire; immune to poison and psychic damage).' },
     ],
   },
   'giant-eagle': {
@@ -154,14 +148,14 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Celestial',
     alignment: 'Neutral Good',
     speed: '10 ft (3 m), fly 80 ft (24 m)',
-    skills: 'Perception +4',
+    skills: 'Perception +6',
     resistances: 'Necrotic, radiant',
-    senses: 'Passive Perception 14',
+    senses: 'Passive Perception 16',
     languages: 'Celestial; understands Common but can’t speak it',
     description: 'A majestic bird with a wingspan as wide as a house. A friend to kindly travelers and the bane of goblins.',
     actions: [
-      { name: 'Multiattack', description: 'The eagle makes two Talons attacks.' },
-      { name: 'Talons', description: '+5 to hit, reach 5 ft. Hit: 5 (1d4+3) slashing damage plus 3 (1d6) radiant damage.' },
+      { name: 'Multiattack', description: 'The eagle makes two Rend attacks.' },
+      { name: 'Rend', description: '+5 to hit, reach 5 ft. Hit: 5 (1d4+3) slashing damage plus 3 (1d6) radiant damage.' },
     ],
   },
   'bandit': {
@@ -188,9 +182,9 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common',
     description: 'The leader of a bandit gang, sharp of saber and sharper of tongue. Respects courage — and the ring of coin.',
     actions: [
-      { name: 'Multiattack', description: 'The captain makes three attacks: two with its Scimitar and one with its Dagger.' },
+      { name: 'Multiattack', description: 'The captain makes two attacks, using Scimitar or Pistol in any combination.' },
       { name: 'Scimitar', description: '+5 to hit, reach 5 ft. Hit: 6 (1d6+3) slashing damage.' },
-      { name: 'Dagger', description: '+5 to hit, reach 5 ft. or range 20/60 ft. Hit: 5 (1d4+3) piercing damage.' },
+      { name: 'Pistol', description: '+5 to hit, range 30/90 ft. Hit: 8 (1d10+3) piercing damage.' },
     ],
     reactions: [
       { name: 'Parry', description: 'The captain adds 2 to its AC against one melee attack that would hit it. To do so, the captain must see the attacker and be wielding a melee weapon.' },
@@ -206,7 +200,7 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common',
     description: 'A loyal defender of city gates and merchant caravans. The first thing you’ll hear is a stern “Who goes there?”',
     actions: [
-      { name: 'Spear', description: '+3 to hit, reach 5 ft. or range 20/60 ft. Hit: 4 (1d6+1) piercing damage, or 5 (1d8+1) if used with two hands.' },
+      { name: 'Spear', description: '+3 to hit, reach 5 ft. or range 20/60 ft. Hit: 4 (1d6+1) piercing damage.' },
     ],
   },
   'cultist': {
@@ -218,9 +212,6 @@ export const MONSTERS_EN: MonstersL10n = {
     senses: 'Passive Perception 10',
     languages: 'Common',
     description: 'A mysterious hooded figure whispering strange oaths. Serves dark powers — and deep down is rather afraid of them.',
-    traits: [
-      { name: 'Dark Devotion', description: 'The cultist has advantage on saving throws against being Charmed or Frightened.' },
-    ],
     actions: [
       { name: 'Ritual Sickle', description: '+3 to hit, reach 5 ft. Hit: 3 (1d4+1) slashing damage plus 1 necrotic damage.' },
     ],
@@ -230,20 +221,19 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Humanoid',
     alignment: 'Neutral',
     speed: '30 ft (9 m)',
-    skills: 'Deception +4, Religion +2, Persuasion +4',
-    senses: 'Passive Perception 11',
+    skills: 'Deception +3, Persuasion +3, Religion +2',
+    senses: 'Passive Perception 12',
     languages: 'Common',
     description: 'A fiery dark-cult preacher with burning eyes. Ready to do anything for their masters’ approval.',
     traits: [
       { name: 'Dark Devotion', description: 'The fanatic has advantage on saving throws against being Charmed or Frightened.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The fanatic makes two Pact Blade attacks.' },
       { name: 'Pact Blade', description: '+4 to hit, reach 5 ft. Hit: 6 (1d8+2) slashing damage plus 7 (2d6) necrotic damage.' },
-      { name: 'Spellcasting', description: 'Wisdom is the spellcasting ability (spell save DC 11). At will: Light, Thaumaturgy. 2/day each: Command, Hold Person.' },
+      { name: 'Spellcasting', description: 'Wisdom is the spellcasting ability (spell save DC 12, +4 to hit with spell attacks). At will: Light, Thaumaturgy. 2/day: Command. 1/day: Hold Person.' },
     ],
     bonusActions: [
-      { name: 'Spiritual Weapon (2/Day)', description: 'The fanatic conjures a spectral weapon within 60 feet and attacks with it as a bonus action: +3 to hit, 5 (1d8+1) force damage.' },
+      { name: 'Spiritual Weapon (2/Day)', description: 'The fanatic casts Spiritual Weapon.' },
     ],
   },
   'acolyte': {
@@ -257,7 +247,11 @@ export const MONSTERS_EN: MonstersL10n = {
     description: 'A young temple servant who knows a healing prayer or two. Always ready to patch up a weary hero.',
     actions: [
       { name: 'Mace', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) bludgeoning damage plus 2 (1d4) radiant damage.' },
-      { name: 'Spellcasting', description: 'Wisdom is the spellcasting ability (spell save DC 12). At will: Light, Thaumaturgy. 1/day each: Bless, Cure Wounds.' },
+      { name: 'Radiant Flame', description: 'Ranged Spell Attack: +4 to hit, range 60 ft. Hit: 7 (2d6) radiant damage.' },
+      { name: 'Spellcasting', description: 'Wisdom is the spellcasting ability. At will: Light, Thaumaturgy.' },
+    ],
+    bonusActions: [
+      { name: 'Divine Aid (1/Day)', description: 'The acolyte casts Bless, Healing Word, or Sanctuary as a bonus action.' },
     ],
   },
   'priest': {
@@ -276,7 +270,7 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Spellcasting', description: 'Wisdom is the spellcasting ability (spell save DC 13). At will: Light, Thaumaturgy. 1/day: Spirit Guardians.' },
     ],
     bonusActions: [
-      { name: 'Divine Aid (3/Day)', description: 'The priest casts Bless, Healing Word, or Lesser Restoration as a bonus action.' },
+      { name: 'Divine Aid (3/Day)', description: 'The priest casts Bless, Dispel Magic, Healing Word, or Lesser Restoration as a bonus action.' },
     ],
   },
   'mage': {
@@ -285,14 +279,14 @@ export const MONSTERS_EN: MonstersL10n = {
     alignment: 'Neutral',
     speed: '30 ft (9 m)',
     saves: 'INT +6, WIS +4',
-    skills: 'Arcana +6, History +6',
-    senses: 'Passive Perception 11',
+    skills: 'Arcana +6, History +6, Perception +4',
+    senses: 'Passive Perception 14',
     languages: 'Common plus three other languages',
     description: 'A scholarly wizard forever buried in some ancient tome. Best to keep well clear of the fireballs.',
     actions: [
       { name: 'Multiattack', description: 'The mage makes three Arcane Burst attacks.' },
       { name: 'Arcane Burst', description: 'Melee or Ranged Spell Attack: +6 to hit, reach 5 ft. or range 120 ft. Hit: 16 (3d8+3) force damage.' },
-      { name: 'Spellcasting', description: 'Intelligence is the spellcasting ability (spell save DC 14). At will: Detect Magic, Light, Mage Hand, Prestidigitation, Mage Armor (already included in AC). 2/day each: Fireball, Invisibility. 1/day each: Fly, Cone of Cold.' },
+      { name: 'Spellcasting', description: 'Intelligence is the spellcasting ability (spell save DC 14). At will: Detect Magic, Light, Mage Armor (included in AC), Mage Hand, Prestidigitation. 2/day each: Fireball (level 4 version), Invisibility. 1/day each: Cone of Cold, Fly.' },
     ],
     bonusActions: [
       { name: 'Misty Step (3/Day)', description: 'The mage teleports up to 30 feet to an unoccupied space it can see.' },
@@ -312,10 +306,9 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common',
     description: 'A noble warrior in shining plate, true to a code of honor. Protects the weak and always keeps their word.',
     actions: [
-      { name: 'Multiattack', description: 'The knight makes two Greatsword attacks.' },
-      { name: 'Greatsword', description: '+5 to hit, reach 5 ft. Hit: 10 (2d6+3) slashing damage.' },
-      { name: 'Heavy Crossbow', description: '+2 to hit, range 100/400 ft. Hit: 5 (1d10) piercing damage.' },
-      { name: 'Leadership (Recharges after a Rest)', description: 'For 1 minute, the knight shouts commands: allies within 30 feet who can hear it add 1d4 to their attack rolls and saving throws.' },
+      { name: 'Multiattack', description: 'The knight makes two attacks, using Greatsword or Heavy Crossbow in any combination.' },
+      { name: 'Greatsword', description: '+5 to hit, reach 5 ft. Hit: 10 (2d6+3) slashing damage plus 4 (1d8) radiant damage.' },
+      { name: 'Heavy Crossbow', description: '+2 to hit, range 100/400 ft. Hit: 11 (2d10) piercing damage plus 4 (1d8) radiant damage.' },
     ],
     reactions: [
       { name: 'Parry', description: 'The knight adds 2 to its AC against one melee attack that would hit it. To do so, the knight must see the attacker and be wielding a melee weapon.' },
@@ -330,11 +323,8 @@ export const MONSTERS_EN: MonstersL10n = {
     senses: 'Passive Perception 15',
     languages: 'Common',
     description: 'A tracker who reads the forest like an open book. Notices strangers’ tracks long before they notice the scout.',
-    traits: [
-      { name: 'Keen Hearing and Sight', description: 'The scout has advantage on Wisdom (Perception) checks that rely on hearing or sight.' },
-    ],
     actions: [
-      { name: 'Multiattack', description: 'The scout makes two melee attacks or two Longbow attacks.' },
+      { name: 'Multiattack', description: 'The scout makes two attacks, using Shortsword or Longbow in any combination.' },
       { name: 'Shortsword', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) piercing damage.' },
       { name: 'Longbow', description: '+4 to hit, range 150/600 ft. Hit: 6 (1d8+2) piercing damage.' },
     ],
@@ -344,7 +334,6 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Humanoid',
     alignment: 'Neutral',
     speed: '30 ft (9 m)',
-    skills: 'Intimidation +2',
     senses: 'Passive Perception 10',
     languages: 'Common',
     description: 'A bruiser hired for dirty work. Fearsome to look at, but one meeting with real heroes has him rethinking his career.',
@@ -352,9 +341,8 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Pack Tactics', description: 'The thug has advantage on an attack roll if an ally of the thug is within 5 feet of the target and isn’t incapacitated.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The thug makes two Mace attacks.' },
       { name: 'Mace', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) bludgeoning damage.' },
-      { name: 'Heavy Crossbow', description: '+2 to hit, range 100/400 ft. Hit: 5 (1d10) piercing damage.' },
+      { name: 'Heavy Crossbow', description: '+3 to hit, range 100/400 ft. Hit: 6 (1d10+1) piercing damage.' },
     ],
   },
   'goblin-warrior': {
@@ -367,8 +355,8 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common, Goblin',
     description: 'A small green-skinned trickster, dangerous in a mob. Loves ambushes and other people’s treasure.',
     actions: [
-      { name: 'Scimitar', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) slashing damage.' },
-      { name: 'Shortbow', description: '+4 to hit, range 80/320 ft. Hit: 5 (1d6+2) piercing damage.' },
+      { name: 'Scimitar', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) slashing damage, plus 2 (1d4) slashing damage if the attack roll had advantage.' },
+      { name: 'Shortbow', description: '+4 to hit, range 80/320 ft. Hit: 5 (1d6+2) piercing damage, plus 2 (1d4) piercing damage if the attack roll had advantage.' },
     ],
     bonusActions: [
       { name: 'Nimble Escape', description: 'The goblin takes the Disengage or Hide action as a bonus action.' },
@@ -385,8 +373,8 @@ export const MONSTERS_EN: MonstersL10n = {
     description: 'The loudest and craftiest goblin in the tribe. Barks orders at full volume — and hides behind its minions at the first sign of danger.',
     actions: [
       { name: 'Multiattack', description: 'The goblin makes two attacks, using Scimitar or Shortbow in any combination.' },
-      { name: 'Scimitar', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) slashing damage.' },
-      { name: 'Shortbow', description: '+4 to hit, range 80/320 ft. Hit: 5 (1d6+2) piercing damage.' },
+      { name: 'Scimitar', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) slashing damage, plus 2 (1d4) slashing damage if the attack roll had advantage.' },
+      { name: 'Shortbow', description: '+4 to hit, range 80/320 ft. Hit: 5 (1d6+2) piercing damage, plus 2 (1d4) piercing damage if the attack roll had advantage.' },
     ],
     bonusActions: [
       { name: 'Nimble Escape', description: 'The goblin takes the Disengage or Hide action as a bonus action.' },
@@ -404,11 +392,11 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common, Goblin',
     description: 'A disciplined soldier of goblinkind. Marches in formation, polishes its armor, and despises disorder.',
     traits: [
-      { name: 'Martial Advantage', description: 'Once per turn, the hobgoblin deals an extra 7 (2d6) damage to a creature it hits if an ally of the hobgoblin is within 5 feet of the target and isn’t incapacitated.' },
+      { name: 'Pack Tactics', description: 'The hobgoblin has advantage on an attack roll if an ally of the hobgoblin is within 5 feet of the target and isn’t incapacitated.' },
     ],
     actions: [
-      { name: 'Longsword', description: '+3 to hit, reach 5 ft. Hit: 5 (1d8+1) slashing damage.' },
-      { name: 'Longbow', description: '+3 to hit, range 150/600 ft. Hit: 5 (1d8+1) piercing damage.' },
+      { name: 'Longsword', description: '+3 to hit, reach 5 ft. Hit: 12 (2d10+1) slashing damage.' },
+      { name: 'Longbow', description: '+3 to hit, range 150/600 ft. Hit: 5 (1d8+1) piercing damage plus 7 (3d4) poison damage.' },
     ],
   },
   'bugbear-warrior': {
@@ -421,11 +409,11 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common, Goblin',
     description: 'A shaggy hulk from the goblin tribes. For all its size, it sneaks more quietly than a cat.',
     traits: [
-      { name: 'Surprise Attack', description: 'If the bugbear hits a creature that hasn’t taken a turn in the combat yet, the target takes an extra 7 (2d6) damage.' },
+      { name: 'Abduct', description: 'The bugbear needn’t spend extra movement to move a creature it is grappling.' },
     ],
     actions: [
-      { name: 'Morningstar', description: '+4 to hit, reach 5 ft. Hit: 11 (2d8+2) piercing damage.' },
-      { name: 'Javelin', description: '+4 to hit, reach 5 ft. or range 30/120 ft. Hit: 9 (2d6+2) piercing damage.' },
+      { name: 'Grab', description: '+4 to hit, reach 10 ft. Hit: 9 (2d6+2) bludgeoning damage. If the target is a Medium or smaller creature, it is grappled (escape DC 12).' },
+      { name: 'Light Hammer', description: '+4 to hit (with advantage if the target is grappled by the bugbear), reach 10 ft. or range 20/60 ft. Hit: 9 (3d4+2) bludgeoning damage.' },
     ],
   },
   'kobold-warrior': {
@@ -438,11 +426,10 @@ export const MONSTERS_EN: MonstersL10n = {
     description: 'A little lizardkin dreaming of serving a true dragon. Adores traps and really doesn’t like the sun.',
     traits: [
       { name: 'Pack Tactics', description: 'The kobold has advantage on an attack roll if an ally of the kobold is within 5 feet of the target and isn’t incapacitated.' },
-      { name: 'Sunlight Sensitivity', description: 'While in sunlight, the kobold has disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight.' },
+      { name: 'Sunlight Sensitivity', description: 'While in sunlight, the kobold has disadvantage on ability checks and attack rolls.' },
     ],
     actions: [
-      { name: 'Dagger', description: '+4 to hit, reach 5 ft. Hit: 4 (1d4+2) piercing damage.' },
-      { name: 'Sling', description: '+4 to hit, range 30/120 ft. Hit: 4 (1d4+2) bludgeoning damage.' },
+      { name: 'Dagger', description: '+4 to hit, reach 5 ft. or range 20/60 ft. Hit: 4 (1d4+2) piercing damage.' },
     ],
   },
   'skeleton': {
@@ -456,8 +443,8 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Understands the languages it knew in life but can’t speak',
     description: 'A bone-rattling warrior raised by dark magic. Dutifully carries out its creator’s orders.',
     actions: [
-      { name: 'Shortsword', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) piercing damage.' },
-      { name: 'Shortbow', description: '+4 to hit, range 80/320 ft. Hit: 5 (1d6+2) piercing damage.' },
+      { name: 'Shortsword', description: '+5 to hit, reach 5 ft. Hit: 6 (1d6+3) piercing damage.' },
+      { name: 'Shortbow', description: '+5 to hit, range 80/320 ft. Hit: 6 (1d6+3) piercing damage.' },
     ],
   },
   'zombie': {
@@ -474,7 +461,7 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Undead Fortitude', description: 'If damage reduces the zombie to 0 hit points, it makes a Constitution saving throw with a DC of 5 plus the damage taken (unless the damage is radiant or from a critical hit). On a success, the zombie keeps 1 hit point.' },
     ],
     actions: [
-      { name: 'Slam', description: '+3 to hit, reach 5 ft. Hit: 4 (1d6+1) bludgeoning damage.' },
+      { name: 'Slam', description: '+3 to hit, reach 5 ft. Hit: 5 (1d8+1) bludgeoning damage.' },
     ],
   },
   'ghoul': {
@@ -487,8 +474,9 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common',
     description: 'A hungry night prowler of graveyards with long claws. Its touch grips the victim like ice-cold water.',
     actions: [
-      { name: 'Bite', description: '+2 to hit, reach 5 ft. Hit: 9 (2d6+2) piercing damage.' },
-      { name: 'Claws', description: '+4 to hit, reach 5 ft. Hit: 7 (2d4+2) slashing damage. If the target is a creature other than an elf or undead, it must succeed on a DC 10 Constitution saving throw or be Paralyzed for 1 minute (repeating the saving throw at the end of each of its turns).' },
+      { name: 'Multiattack', description: 'The ghoul makes two Bite attacks.' },
+      { name: 'Bite', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) piercing damage plus 3 (1d6) necrotic damage.' },
+      { name: 'Claw', description: '+4 to hit, reach 5 ft. Hit: 4 (1d4+2) slashing damage. If the target is a creature that isn’t an undead or elf, it must succeed on a DC 10 Constitution saving throw or be paralyzed until the end of its next turn.' },
     ],
   },
   'shadow': {
@@ -496,7 +484,7 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Undead',
     alignment: 'Chaotic Evil',
     speed: '40 ft (12 m)',
-    skills: 'Stealth +4 (+6 in dim light or darkness)',
+    skills: 'Stealth +6',
     resistances: 'Acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks',
     immunities: 'Necrotic, poison; Exhaustion, Frightened, Grappled, Paralyzed, Petrified, Poisoned, Prone, Restrained',
     senses: 'Darkvision 60 ft, passive Perception 10',
@@ -507,7 +495,7 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Sunlight Weakness', description: 'While in sunlight, the shadow has disadvantage on attack rolls, ability checks, and saving throws.' },
     ],
     actions: [
-      { name: 'Strength Drain', description: '+4 to hit, reach 5 ft. Hit: 9 (2d6+2) necrotic damage, and the target’s Strength score is reduced by 1d4. If this reduces the target’s Strength to 0, the target falls unconscious. The Strength is restored after a short or long rest.' },
+      { name: 'Draining Swipe', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) necrotic damage, and the target’s Strength score decreases by 1d4. The target dies if this reduces it to 0. If a humanoid dies this way, a new shadow rises from the corpse 1d4 hours later.' },
     ],
     bonusActions: [
       { name: 'Shadow Stealth', description: 'While in dim light or darkness, the shadow takes the Hide action as a bonus action.' },
@@ -517,7 +505,7 @@ export const MONSTERS_EN: MonstersL10n = {
     name: 'Specter',
     type: 'Undead',
     alignment: 'Chaotic Evil',
-    speed: '0 ft, fly 50 ft (15 m), can hover',
+    speed: '30 ft (9 m), fly 50 ft (15 m), can hover',
     resistances: 'Acid, cold, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks',
     immunities: 'Necrotic, poison; Charmed, Exhaustion, Grappled, Paralyzed, Petrified, Poisoned, Prone, Restrained, Unconscious',
     senses: 'Darkvision 60 ft, passive Perception 10',
@@ -528,14 +516,14 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Sunlight Sensitivity', description: 'While in sunlight, the specter has disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight.' },
     ],
     actions: [
-      { name: 'Life Drain', description: '+4 to hit, reach 5 ft. Hit: 10 (3d6) necrotic damage. The target must succeed on a DC 10 Constitution saving throw, or its hit point maximum is reduced by the damage taken until it finishes a long rest.' },
+      { name: 'Life Drain', description: '+4 to hit, reach 5 ft. Hit: 7 (2d6) necrotic damage, and the target’s hit point maximum is reduced by the damage taken.' },
     ],
   },
   'ghost': {
     name: 'Ghost',
     type: 'Undead',
     alignment: 'Neutral',
-    speed: '0 ft, fly 40 ft (12 m), can hover',
+    speed: '5 ft (1.5 m), fly 40 ft (12 m), can hover',
     resistances: 'Acid, fire, lightning, thunder; bludgeoning, piercing, and slashing from nonmagical attacks',
     immunities: 'Cold, necrotic, poison; Charmed, Exhaustion, Frightened, Grappled, Paralyzed, Petrified, Poisoned, Prone, Restrained',
     senses: 'Darkvision 60 ft, passive Perception 11',
@@ -546,10 +534,11 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Incorporeal Movement', description: 'The ghost can move through creatures and objects as if they were difficult terrain. If it ends its turn inside an object, it takes 5 (1d10) force damage.' },
     ],
     actions: [
-      { name: 'Withering Touch', description: '+5 to hit, reach 5 ft. Hit: 17 (4d6+3) necrotic damage.' },
-      { name: 'Horrifying Visage', description: 'Each creature within 60 feet that can see the ghost must succeed on a DC 13 Wisdom saving throw or be Frightened for 1 minute (repeating the saving throw at the end of each of its turns). If a target fails the save by 5 or more, a lock of its hair turns gray with fright.' },
-      { name: 'Etherealness', description: 'The ghost enters the Ethereal Plane, or returns from it to the Material Plane.' },
-      { name: 'Possession (Recharge 6)', description: 'One humanoid within 5 feet must succeed on a DC 13 Charisma saving throw, or the ghost possesses its body and controls it until the ghost is driven out.' },
+      { name: 'Multiattack', description: 'The ghost makes two Withering Touch attacks.' },
+      { name: 'Withering Touch', description: '+5 to hit, reach 5 ft. Hit: 19 (3d10+3) necrotic damage.' },
+      { name: 'Horrific Visage', description: 'Each creature other than undead in a 60-foot cone must succeed on a DC 13 Wisdom saving throw or take 10 (2d6+3) psychic damage and be frightened until the ghost’s next turn. On a success, the creature is immune to this Visage for 24 hours.' },
+      { name: 'Etherealness', description: 'The ghost moves to the Ethereal Plane or back to the Material Plane. It is visible on both planes but can affect only the one it is on.' },
+      { name: 'Possession (Recharge 6)', description: 'One humanoid within 5 feet must succeed on a DC 13 Charisma saving throw or be possessed by the ghost: the target is incapacitated and loses control of its body. The possession lasts until the body drops to 0 hit points or the ghost leaves it as a bonus action. On a success, the target is immune to this Possession for 24 hours.' },
     ],
   },
   'wight': {
@@ -567,10 +556,10 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Sunlight Sensitivity', description: 'While in sunlight, the wight has disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The wight makes two Longsword or Longbow attacks. It can use Life Drain in place of one of them.' },
-      { name: 'Life Drain', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) necrotic damage. The target must succeed on a DC 13 Constitution saving throw, or its hit point maximum is reduced by the damage taken until it finishes a long rest.' },
-      { name: 'Longsword', description: '+4 to hit, reach 5 ft. Hit: 6 (1d8+2) slashing damage.' },
-      { name: 'Longbow', description: '+4 to hit, range 150/600 ft. Hit: 6 (1d8+2) piercing damage.' },
+      { name: 'Multiattack', description: 'The wight makes two attacks, using Necrotic Sword or Necrotic Bow in any combination. It can replace one attack with Life Drain.' },
+      { name: 'Necrotic Sword', description: '+4 to hit, reach 5 ft. Hit: 6 (1d8+2) slashing damage plus 4 (1d8) necrotic damage.' },
+      { name: 'Necrotic Bow', description: '+4 to hit, range 150/600 ft. Hit: 6 (1d8+2) piercing damage plus 4 (1d8) necrotic damage.' },
+      { name: 'Life Drain', description: 'One creature within 5 feet must succeed on a DC 13 Constitution saving throw or take 6 (1d8+2) necrotic damage, and its hit point maximum is reduced by the damage taken. A humanoid slain by this attack rises 24 hours later as a zombie under the wight’s control (no more than 12 at a time).' },
     ],
   },
   'mummy': {
@@ -581,13 +570,13 @@ export const MONSTERS_EN: MonstersL10n = {
     saves: 'WIS +2',
     vulnerabilities: 'Fire',
     immunities: 'Necrotic, poison; Charmed, Exhaustion, Frightened, Paralyzed, Poisoned',
-    senses: 'Darkvision 60 ft, passive Perception 10',
+    senses: 'Darkvision 60 ft, passive Perception 11',
     languages: 'The languages it knew in life',
     description: 'An ancient tomb guardian wrapped in bandages. It very much dislikes anyone touching its treasures — and fire.',
     actions: [
-      { name: 'Multiattack', description: 'The mummy uses Dreadful Glare and makes one Rotting Fist attack.' },
-      { name: 'Rotting Fist', description: '+5 to hit, reach 5 ft. Hit: 10 (2d6+3) bludgeoning damage plus 10 (3d6) necrotic damage. If the target is a creature, it must succeed on a DC 12 Constitution saving throw or be cursed with mummy rot: the cursed target can’t regain hit points until the curse is removed with magic.' },
-      { name: 'Dreadful Glare', description: 'The mummy glares at one creature within 60 feet. The target must succeed on a DC 11 Wisdom saving throw or be Frightened until the end of the mummy’s next turn. If the save fails by 5 or more, the target is also Paralyzed for the same duration.' },
+      { name: 'Multiattack', description: 'The mummy makes two Rotting Fist attacks and uses Dreadful Glare.' },
+      { name: 'Rotting Fist', description: '+5 to hit, reach 5 ft. Hit: 8 (1d10+3) bludgeoning damage plus 10 (3d6) necrotic damage. If the target is a creature, it is cursed with mummy rot: the cursed target can’t regain hit points, its hit point maximum decreases by 10 (3d6) every 24 hours, and it crumbles to dust if reduced to 0 hit points. The curse ends only with magic.' },
+      { name: 'Dreadful Glare', description: 'One creature within 60 feet must succeed on a DC 11 Wisdom saving throw or be frightened until the end of the mummy’s next turn. On a success, the creature is immune to this Glare for 24 hours.' },
     ],
   },
   'vampire-spawn': {
@@ -603,13 +592,15 @@ export const MONSTERS_EN: MonstersL10n = {
     description: 'A young vampire still dreaming of a castle of its own. It fears sunlight, running water, and invitations that were never given.',
     traits: [
       { name: 'Spider Climb', description: 'The spawn can climb any surface, including ceilings, without an ability check.' },
-      { name: 'Regeneration', description: 'The spawn regains 10 hit points at the start of its turn if it has at least 1 hit point and isn’t in sunlight or running water.' },
-      { name: 'Vampire Weaknesses', description: 'The spawn can’t enter a residence without an invitation. In sunlight, it takes 20 radiant damage at the start of its turn and has disadvantage on attack rolls and ability checks.' },
+      { name: 'Vampire Weaknesses', description: 'The spawn can’t enter a residence without an invitation. If it ends its turn in running water, it takes 20 acid damage. If it starts its turn in sunlight, it takes 20 radiant damage and has disadvantage on attack rolls and ability checks. While the spawn is incapacitated, a piercing weapon driven into its heart destroys it.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The spawn makes two Claws attacks. It can replace one of them with a Bite attack.' },
-      { name: 'Claws', description: '+6 to hit, reach 5 ft. Hit: 8 (2d4+3) slashing damage. Instead of dealing damage, the spawn can Grapple the target (escape DC 13).' },
-      { name: 'Bite', description: '+6 to hit, reach 5 ft., one target grappled by the spawn or incapacitated. Hit: 6 (1d6+3) piercing damage plus 7 (2d6) necrotic damage. The target’s hit point maximum is reduced by the necrotic damage taken, and the spawn regains that many hit points.' },
+      { name: 'Multiattack', description: 'The spawn makes two Claw attacks and uses Bite.' },
+      { name: 'Claw', description: '+6 to hit, reach 5 ft. Hit: 8 (2d4+3) slashing damage. If the target is a Medium or smaller creature, it is grappled (escape DC 13).' },
+      { name: 'Bite', description: 'One willing creature, or a creature that is grappled, incapacitated, or restrained, within 5 feet must succeed on a DC 14 Constitution saving throw or take 5 (1d4+3) piercing damage plus 10 (3d6) necrotic damage. The target’s hit point maximum is reduced by the necrotic damage taken, and the spawn regains that many hit points.' },
+    ],
+    bonusActions: [
+      { name: 'Deathless Agility', description: 'The spawn takes the Dash or Disengage action.' },
     ],
   },
   'mimic': {
@@ -623,13 +614,14 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: '—',
     description: 'A treacherous copycat: it poses as a chest, a door, or a barrel and waits for the curious. Every dungeon’s favorite prank.',
     traits: [
-      { name: 'Shapechanger', description: 'The mimic can use its action to take the shape of an object or return to its true form — an amorphous blob.' },
-      { name: 'Adhesive', description: 'The mimic adheres to anything that touches it. A creature that touches the mimic is Grappled by it (escape DC 13).' },
-      { name: 'False Appearance', description: 'While the mimic remains motionless in object form, it is indistinguishable from an ordinary object.' },
+      { name: 'Adhesive (Object Form Only)', description: 'The mimic adheres to anything that touches it. A Huge or smaller creature adhered to the mimic is grappled by it (escape DC 13), and ability checks made to escape have disadvantage.' },
     ],
     actions: [
-      { name: 'Pseudopod', description: '+5 to hit, reach 5 ft. Hit: 7 (1d8+3) bludgeoning damage. If the mimic is in object form, the target adheres to it.' },
-      { name: 'Bite', description: '+5 to hit, reach 5 ft. Hit: 7 (1d8+3) piercing damage plus 4 (1d8) acid damage.' },
+      { name: 'Bite', description: '+5 to hit (with advantage if the target is grappled by the mimic), reach 5 ft. Hit: 7 (1d8+3) piercing damage, or 12 (2d8+3) if the target is grappled, plus 4 (1d8) acid damage.' },
+      { name: 'Pseudopod', description: '+5 to hit, reach 5 ft. Hit: 7 (1d8+3) bludgeoning damage plus 4 (1d8) acid damage. If the target is a Large or smaller creature, it is grappled (escape DC 13, escape checks have disadvantage).' },
+    ],
+    bonusActions: [
+      { name: 'Shape-Shift', description: 'The mimic transforms into a Medium or Small object or back into its true amorphous form. Its statistics are the same in each form.' },
     ],
   },
   'owlbear': {
@@ -637,17 +629,13 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Monstrosity',
     alignment: 'Unaligned',
     speed: '40 ft (12 m)',
-    skills: 'Perception +3',
-    senses: 'Darkvision 60 ft, passive Perception 13',
+    skills: 'Perception +5',
+    senses: 'Darkvision 60 ft, passive Perception 15',
     languages: '—',
     description: 'Half owl, half bear — and entirely very hungry. Its hoot makes the trees tremble.',
-    traits: [
-      { name: 'Keen Sight and Smell', description: 'The owlbear has advantage on Wisdom (Perception) checks that rely on sight or smell.' },
-    ],
     actions: [
-      { name: 'Multiattack', description: 'The owlbear makes one Beak attack and one Claws attack.' },
-      { name: 'Beak', description: '+7 to hit, reach 5 ft. Hit: 10 (1d10+5) piercing damage.' },
-      { name: 'Claws', description: '+7 to hit, reach 5 ft. Hit: 14 (2d8+5) slashing damage.' },
+      { name: 'Multiattack', description: 'The owlbear makes two Rend attacks.' },
+      { name: 'Rend', description: '+7 to hit, reach 5 ft. Hit: 14 (2d8+5) slashing damage.' },
     ],
   },
   'harpy': {
@@ -659,10 +647,8 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common',
     description: 'A bird with a woman’s face and a thoroughly nasty temper. Her song lures travelers in like the smell of fresh pie.',
     actions: [
-      { name: 'Multiattack', description: 'The harpy makes two attacks: one with its Claws and one with its Club.' },
-      { name: 'Claws', description: '+3 to hit, reach 5 ft. Hit: 6 (2d4+1) slashing damage.' },
-      { name: 'Club', description: '+3 to hit, reach 5 ft. Hit: 3 (1d4+1) bludgeoning damage.' },
-      { name: 'Luring Song', description: 'The harpy sings a magical song. Each humanoid and giant within 300 feet that can hear it must succeed on a DC 11 Wisdom saving throw or be Charmed until the song ends. A Charmed target is incapacitated and moves toward the harpy by the shortest route. The target repeats the saving throw whenever it takes damage and at the end of each of its turns; after a success, it is immune to the song for 24 hours.' },
+      { name: 'Claw', description: '+3 to hit, reach 5 ft. Hit: 6 (2d4+1) slashing damage.' },
+      { name: 'Luring Song', description: 'The harpy sings a magical melody (requires concentration). Every humanoid and giant within 300 feet that can hear it must succeed on a DC 11 Wisdom saving throw or be charmed while the song lasts: the target is incapacitated and moves toward the harpy by the shortest route on each of its turns. The save is repeated when the target takes damage and before entering hazardous terrain; on a success, the target is immune to this harpy’s song for 24 hours.' },
     ],
   },
   'centaur': {
@@ -670,18 +656,17 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Fey',
     alignment: 'Neutral Good',
     speed: '50 ft (15 m)',
-    skills: 'Athletics +6, Perception +3, Survival +3',
+    skills: 'Athletics +6, Perception +3',
     senses: 'Passive Perception 13',
     languages: 'Elvish, Sylvan',
     description: 'Half human, half horse — a proud warden of the forest paths. Swifter than the wind, and none too fond of uninvited guests.',
-    traits: [
-      { name: 'Charge', description: 'If the centaur moved at least 30 feet straight toward a target and hits it with a Pike attack on the same turn, the target takes an extra 10 (3d6) piercing damage.' },
-    ],
     actions: [
-      { name: 'Multiattack', description: 'The centaur makes two attacks: one with its Pike and one with its Hooves, or two with its Longbow.' },
+      { name: 'Multiattack', description: 'The centaur makes two attacks, using Pike or Longbow in any combination.' },
       { name: 'Pike', description: '+6 to hit, reach 10 ft. Hit: 9 (1d10+4) piercing damage.' },
-      { name: 'Hooves', description: '+6 to hit, reach 5 ft. Hit: 11 (2d6+4) bludgeoning damage.' },
       { name: 'Longbow', description: '+4 to hit, range 150/600 ft. Hit: 6 (1d8+2) piercing damage.' },
+    ],
+    bonusActions: [
+      { name: 'Trampling Charge (Recharge 5–6)', description: 'The centaur moves up to its speed without provoking opportunity attacks and can move through the spaces of Medium or smaller creatures. Each creature whose space it entered must succeed on a DC 14 Strength saving throw or take 7 (1d6+4) bludgeoning damage and be knocked prone.' },
     ],
   },
   'minotaur': {
@@ -689,18 +674,13 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Monstrosity',
     alignment: 'Chaotic Evil',
     speed: '40 ft (12 m)',
-    skills: 'Perception +7',
+    skills: 'Perception +7, Survival +7',
     senses: 'Darkvision 60 ft, passive Perception 17',
     languages: 'Abyssal',
     description: 'A bull-headed giant, lord of tangled corridors. In its labyrinth, you’d best not forget the way back.',
-    traits: [
-      { name: 'Charge', description: 'If the minotaur moved at least 10 feet straight toward a target and hits it with a Gore attack on the same turn, the target takes an extra 9 (2d8) piercing damage and, if it is a creature, must succeed on a DC 14 Strength saving throw or be pushed 10 feet away and knocked prone.' },
-      { name: 'Labyrinthine Recall', description: 'The minotaur perfectly recalls any path it has ever traveled.' },
-      { name: 'Reckless', description: 'At the start of its turn, the minotaur can gain advantage on its attack rolls, but then attack rolls against it also have advantage until its next turn.' },
-    ],
     actions: [
-      { name: 'Greataxe', description: '+6 to hit, reach 5 ft. Hit: 17 (2d12+4) slashing damage.' },
-      { name: 'Gore', description: '+6 to hit, reach 5 ft. Hit: 13 (2d8+4) piercing damage.' },
+      { name: 'Abyssal Glaive', description: '+6 to hit, reach 10 ft. Hit: 10 (1d12+4) slashing damage plus 10 (3d6) necrotic damage.' },
+      { name: 'Gore (Recharge 5–6)', description: '+6 to hit, reach 5 ft. Hit: 18 (4d6+4) piercing damage. If the minotaur moved at least 10 feet straight toward a Large or smaller target right before the hit, the target takes an extra 10 (3d6) piercing damage and is knocked prone.' },
     ],
   },
   'basilisk': {
@@ -711,11 +691,11 @@ export const MONSTERS_EN: MonstersL10n = {
     senses: 'Darkvision 60 ft, passive Perception 9',
     languages: '—',
     description: 'An eight-legged lizard whose gaze turns flesh to stone. Remarkably lifelike statues stand all around its lair.',
-    traits: [
-      { name: 'Petrifying Gaze', description: 'If a creature starts its turn within 30 feet of the basilisk and the two can see each other, the basilisk can force it to make a DC 12 Constitution saving throw. On a failure, the creature begins to turn to stone and is Restrained; at the end of its next turn it repeats the saving throw — on a success the effect ends, on a failure the creature is Petrified until freed by magic. A creature can avert its eyes and not look at the basilisk — then until the start of its next turn, it attacks the basilisk with disadvantage.' },
-    ],
     actions: [
       { name: 'Bite', description: '+5 to hit, reach 5 ft. Hit: 10 (2d6+3) piercing damage plus 7 (2d6) poison damage.' },
+    ],
+    bonusActions: [
+      { name: 'Petrifying Gaze (Recharge 4–6)', description: 'The basilisk gazes in a 30-foot cone: each creature there that can see the basilisk must succeed on a DC 12 Constitution saving throw or begin to turn to stone and be restrained. The restrained target repeats the save at the end of its next turn: on a success the effect ends, on a failure the target is petrified until freed.' },
     ],
   },
   'griffon': {
@@ -731,9 +711,8 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Keen Sight', description: 'The griffon has advantage on Wisdom (Perception) checks that rely on sight.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The griffon makes one Beak attack and one Claws attack.' },
-      { name: 'Beak', description: '+6 to hit, reach 5 ft. Hit: 8 (1d8+4) piercing damage.' },
-      { name: 'Claws', description: '+6 to hit, reach 5 ft. Hit: 11 (2d6+4) slashing damage.' },
+      { name: 'Multiattack', description: 'The griffon makes two Rend attacks.' },
+      { name: 'Rend', description: '+6 to hit, reach 5 ft. Hit: 8 (1d8+4) piercing damage. If the target is a Medium or smaller creature, it is grappled by one of the griffon’s front claws (escape DC 14).' },
     ],
   },
   'wyvern': {
@@ -742,14 +721,13 @@ export const MONSTERS_EN: MonstersL10n = {
     alignment: 'Unaligned',
     speed: '30 ft (9 m), fly 80 ft (24 m)',
     skills: 'Perception +4',
-    senses: 'Darkvision 60 ft, passive Perception 14',
+    senses: 'Darkvision 120 ft, passive Perception 14',
     languages: '—',
     description: 'A two-legged winged cousin of dragons with a venomous stinger on its tail. It can’t breathe fire — and is very cross about it.',
     actions: [
-      { name: 'Multiattack', description: 'The wyvern makes two attacks: one with its Bite and one with its Stinger. While flying, it can replace one of them with a Claws attack.' },
-      { name: 'Bite', description: '+7 to hit, reach 10 ft. Hit: 11 (2d6+4) piercing damage.' },
-      { name: 'Claws', description: '+7 to hit, reach 5 ft. Hit: 13 (2d8+4) slashing damage.' },
-      { name: 'Stinger', description: '+7 to hit, reach 10 ft. Hit: 11 (2d6+4) piercing damage, and the target makes a DC 15 Constitution saving throw, taking 24 (7d6) poison damage on a failed save, or half as much damage on a successful one.' },
+      { name: 'Multiattack', description: 'The wyvern makes one Bite attack and one Sting attack.' },
+      { name: 'Bite', description: '+7 to hit, reach 5 ft. Hit: 13 (2d8+4) piercing damage.' },
+      { name: 'Sting', description: '+7 to hit, reach 10 ft. Hit: 11 (2d6+4) piercing damage plus 24 (7d6) poison damage, and the target is poisoned until the start of the wyvern’s next turn.' },
     ],
   },
   'ogre': {
@@ -770,18 +748,20 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Giant',
     alignment: 'Chaotic Evil',
     speed: '30 ft (9 m)',
-    skills: 'Perception +2',
-    senses: 'Darkvision 60 ft, passive Perception 12',
+    skills: 'Perception +5',
+    senses: 'Darkvision 60 ft, passive Perception 15',
     languages: 'Giant',
     description: 'A lanky green giant that grows everything back. The only thing it truly fears is fire.',
     traits: [
-      { name: 'Keen Smell', description: 'The troll has advantage on Wisdom (Perception) checks that rely on smell.' },
-      { name: 'Regeneration', description: 'The troll regains 10 hit points at the start of its turn. If the troll takes acid or fire damage, the regeneration doesn’t function at the start of its next turn. The troll dies only if it starts its turn with 0 hit points and doesn’t regenerate.' },
+      { name: 'Loathsome Limbs (4/Day)', description: 'If the troll ends any turn bloodied and took 15+ slashing damage during that turn, one of its limbs is severed, falls into the troll’s space, and fights on its own.' },
+      { name: 'Regeneration', description: 'The troll regains 15 hit points at the start of each of its turns. If the troll takes acid or fire damage, this trait doesn’t function on the troll’s next turn. The troll dies only if it starts its turn with 0 hit points and doesn’t regenerate.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The troll makes three attacks: one with its Bite and two with its Claws.' },
-      { name: 'Bite', description: '+7 to hit, reach 5 ft. Hit: 7 (1d6+4) piercing damage.' },
-      { name: 'Claws', description: '+7 to hit, reach 5 ft. Hit: 11 (2d6+4) slashing damage.' },
+      { name: 'Multiattack', description: 'The troll makes three Rend attacks.' },
+      { name: 'Rend', description: '+7 to hit, reach 10 ft. Hit: 11 (2d6+4) slashing damage.' },
+    ],
+    bonusActions: [
+      { name: 'Charge', description: 'The troll moves up to half its speed straight toward an enemy it can see.' },
     ],
   },
   'gargoyle': {
@@ -789,18 +769,18 @@ export const MONSTERS_EN: MonstersL10n = {
     type: 'Elemental',
     alignment: 'Chaotic Evil',
     speed: '30 ft (9 m), fly 60 ft (18 m)',
+    skills: 'Stealth +4',
     resistances: 'Bludgeoning, piercing, and slashing from nonmagical attacks',
     immunities: 'Poison; Exhaustion, Petrified, Poisoned',
     senses: 'Darkvision 60 ft, passive Perception 10',
     languages: 'Terran',
     description: 'A stone statue that suddenly spreads its wings. It loves perching on rooftops, posing as decoration.',
     traits: [
-      { name: 'False Appearance', description: 'While the gargoyle remains motionless, it is indistinguishable from a stone statue.' },
+      { name: 'Flyby', description: 'The gargoyle doesn’t provoke an opportunity attack when it flies out of an enemy’s reach.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The gargoyle makes one Bite attack and one Claws attack.' },
-      { name: 'Bite', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) piercing damage.' },
-      { name: 'Claws', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) slashing damage.' },
+      { name: 'Multiattack', description: 'The gargoyle makes two Claw attacks.' },
+      { name: 'Claw', description: '+4 to hit, reach 5 ft. Hit: 7 (2d4+2) slashing damage.' },
     ],
   },
   'animated-armor': {
@@ -812,10 +792,6 @@ export const MONSTERS_EN: MonstersL10n = {
     senses: 'Blindsight 60 ft (blind beyond this radius), passive Perception 6',
     languages: '—',
     description: 'An empty suit of plate that moves all by itself. For centuries it has faithfully guarded the halls of ancient castles.',
-    traits: [
-      { name: 'Antimagic Susceptibility', description: 'The armor is incapacitated while in an area of antimagic. If targeted by Dispel Magic, it falls unconscious for 1 minute.' },
-      { name: 'False Appearance', description: 'While the armor remains motionless, it is indistinguishable from an ordinary suit of armor on a stand.' },
-    ],
     actions: [
       { name: 'Multiattack', description: 'The armor makes two Slam attacks.' },
       { name: 'Slam', description: '+4 to hit, reach 5 ft. Hit: 5 (1d6+2) bludgeoning damage.' },
@@ -831,12 +807,12 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: '—',
     description: 'A transparent, quivering cube that slowly crawls through dungeon corridors, collecting everything in its path. Other people’s coins often glitter inside it.',
     traits: [
-      { name: 'Ooze Cube', description: 'The cube fills its entire space. Creatures inside the cube are visible but Restrained by the jelly.' },
-      { name: 'Transparent', description: 'The cube is hard to spot even at point-blank range: it takes a successful DC 15 Wisdom (Perception) check. A creature that fails to notice the cube can accidentally walk right into it.' },
+      { name: 'Ooze Cube', description: 'The cube fills its entire space. It can hold one Large creature or up to four Medium or smaller creatures inside it. A creature within 5 feet can take an action to pull a creature or object out of the cube with a DC 12 Strength (Athletics) check, taking 10 (3d6) acid damage in the process.' },
+      { name: 'Transparent', description: 'The cube is hard to spot even up close: seeing it requires a successful DC 15 Wisdom (Perception) check. A creature that fails to notice the cube may walk right into it.' },
     ],
     actions: [
-      { name: 'Pseudopod', description: '+4 to hit, reach 5 ft. Hit: 10 (3d6) acid damage.' },
-      { name: 'Engulf', description: 'The cube moves, and each creature in its path makes a DC 12 Dexterity saving throw. On a failure, the creature ends up inside the cube: it is Restrained, takes 10 (3d6) acid damage immediately and 21 (6d6) at the start of each of the cube’s turns. Escaping takes an action and a successful DC 12 Strength check (from inside, or from outside by pulling a companion free).' },
+      { name: 'Pseudopod', description: '+4 to hit, reach 5 ft. Hit: 12 (3d6+2) acid damage.' },
+      { name: 'Engulf', description: 'The cube moves up to its speed without provoking opportunity attacks and can move through the spaces of Large or smaller creatures. Each creature whose space it enters for the first time on a turn makes a DC 12 Dexterity saving throw. On a failure, the creature takes 10 (3d6) acid damage and is engulfed: it is restrained, can’t breathe, and takes 10 (3d6) acid damage at the start of each of the cube’s turns. On a success, the creature takes half damage and moves to an unoccupied space next to the cube. Escaping takes an action and a successful DC 12 Strength (Athletics) check.' },
     ],
   },
   'hill-giant': {
@@ -849,9 +825,9 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Giant',
     description: 'A mountain of muscle as tall as a house, forever hungry and forever displeased. Hurls boulders like snowballs.',
     actions: [
-      { name: 'Multiattack', description: 'The giant makes two Greatclub attacks.' },
-      { name: 'Greatclub', description: '+8 to hit, reach 10 ft. Hit: 18 (3d8+5) bludgeoning damage.' },
-      { name: 'Rock', description: '+8 to hit, range 60/240 ft. Hit: 21 (3d10+5) bludgeoning damage.' },
+      { name: 'Multiattack', description: 'The giant makes two attacks, using Tree Club or Trash Lob in any combination.' },
+      { name: 'Tree Club', description: '+8 to hit, reach 10 ft. Hit: 18 (3d8+5) bludgeoning damage. If the target is a Large or smaller creature, it is knocked prone.' },
+      { name: 'Trash Lob', description: '+8 to hit, range 60/240 ft. Hit: 16 (2d10+5) bludgeoning damage, and the target is poisoned until the end of its next turn.' },
     ],
   },
   'frost-giant': {
@@ -866,9 +842,12 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Giant',
     description: 'The lord of the frozen wastes, icicles in his beard. Considers a blizzard fine weather for a stroll.',
     actions: [
-      { name: 'Multiattack', description: 'The giant makes two Greataxe attacks.' },
-      { name: 'Greataxe', description: '+9 to hit, reach 10 ft. Hit: 25 (3d12+6) slashing damage.' },
-      { name: 'Rock', description: '+9 to hit, range 60/240 ft. Hit: 28 (4d10+6) bludgeoning damage.' },
+      { name: 'Multiattack', description: 'The giant makes two attacks, using Frost Axe or Great Bow in any combination.' },
+      { name: 'Frost Axe', description: '+9 to hit, reach 10 ft. Hit: 19 (2d12+6) slashing damage plus 9 (2d8) cold damage.' },
+      { name: 'Great Bow', description: '+9 to hit, range 150/600 ft. Hit: 17 (2d10+6) piercing damage plus 7 (2d6) cold damage, and the target’s speed decreases by 10 feet until the end of its next turn.' },
+    ],
+    bonusActions: [
+      { name: 'War Cry (Recharge 5–6)', description: 'The giant or one creature of its choice that can see or hear it gains 16 (2d10+5) temporary hit points and has advantage on attack rolls until the start of the giant’s next turn.' },
     ],
   },
   'young-white-dragon': {
@@ -886,10 +865,9 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Ice Walk', description: 'The dragon can move across ice and snow without spending extra movement.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The dragon makes three attacks: one with its Bite and two with its Claws.' },
-      { name: 'Bite', description: '+7 to hit, reach 10 ft. Hit: 15 (2d10+4) piercing damage plus 4 (1d8) cold damage.' },
-      { name: 'Claws', description: '+7 to hit, reach 5 ft. Hit: 11 (2d6+4) slashing damage.' },
-      { name: 'Cold Breath (Recharge 5–6)', description: 'The dragon exhales an icy blast in a 30-foot cone. Each creature in that area makes a DC 15 Constitution saving throw, taking 45 (10d8) cold damage on a failed save, or half as much damage on a successful one.' },
+      { name: 'Multiattack', description: 'The dragon makes three Rend attacks.' },
+      { name: 'Rend', description: '+7 to hit, reach 10 ft. Hit: 9 (2d4+4) slashing damage plus 2 (1d4) cold damage.' },
+      { name: 'Cold Breath (Recharge 5–6)', description: 'The dragon exhales an icy blast in a 30-foot cone. Each creature in that area makes a DC 15 Constitution saving throw, taking 40 (9d8) cold damage on a failure or half as much on a success.' },
     ],
   },
   'young-black-dragon': {
@@ -907,10 +885,9 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Amphibious', description: 'The dragon can breathe both air and water.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The dragon makes three attacks: one with its Bite and two with its Claws.' },
-      { name: 'Bite', description: '+7 to hit, reach 10 ft. Hit: 15 (2d10+4) piercing damage plus 4 (1d8) acid damage.' },
-      { name: 'Claws', description: '+7 to hit, reach 5 ft. Hit: 11 (2d6+4) slashing damage.' },
-      { name: 'Acid Breath (Recharge 5–6)', description: 'The dragon exhales a stream of acid in a 30-foot line that is 5 feet wide. Each creature in that area makes a DC 14 Dexterity saving throw, taking 49 (11d8) acid damage on a failed save, or half as much damage on a successful one.' },
+      { name: 'Multiattack', description: 'The dragon makes three Rend attacks.' },
+      { name: 'Rend', description: '+7 to hit, reach 10 ft. Hit: 9 (2d4+4) slashing damage plus 3 (1d6) acid damage.' },
+      { name: 'Acid Breath (Recharge 5–6)', description: 'The dragon exhales acid in a 30-foot-long, 5-foot-wide line. Each creature in that area makes a DC 14 Dexterity saving throw, taking 49 (14d6) acid damage on a failure or half as much on a success.' },
     ],
   },
   'young-red-dragon': {
@@ -925,10 +902,9 @@ export const MONSTERS_EN: MonstersL10n = {
     languages: 'Common, Draconic',
     description: 'Young, proud, and already very dangerous. It is gathering its first hoard and rehearsing a truly menacing roar.',
     actions: [
-      { name: 'Multiattack', description: 'The dragon makes three attacks: one with its Bite and two with its Claws.' },
-      { name: 'Bite', description: '+10 to hit, reach 10 ft. Hit: 17 (2d10+6) piercing damage plus 3 (1d6) fire damage.' },
-      { name: 'Claws', description: '+10 to hit, reach 5 ft. Hit: 13 (2d6+6) slashing damage.' },
-      { name: 'Fire Breath (Recharge 5–6)', description: 'The dragon exhales fire in a 30-foot cone. Each creature in that area makes a DC 17 Dexterity saving throw, taking 56 (16d6) fire damage on a failed save, or half as much damage on a successful one.' },
+      { name: 'Multiattack', description: 'The dragon makes three Rend attacks.' },
+      { name: 'Rend', description: '+10 to hit, reach 10 ft. Hit: 13 (2d6+6) slashing damage plus 3 (1d6) fire damage.' },
+      { name: 'Fire Breath (Recharge 5–6)', description: 'The dragon exhales fire in a 30-foot cone. Each creature in that area makes a DC 17 Dexterity saving throw, taking 56 (16d6) fire damage on a failure or half as much on a success.' },
     ],
   },
   'adult-red-dragon': {
@@ -946,17 +922,15 @@ export const MONSTERS_EN: MonstersL10n = {
       { name: 'Legendary Resistance (3/Day)', description: 'If the dragon fails a saving throw, it can choose to succeed instead.' },
     ],
     actions: [
-      { name: 'Multiattack', description: 'The dragon can use its Frightful Presence, then makes three attacks: one with its Bite and two with its Claws.' },
-      { name: 'Bite', description: '+14 to hit, reach 10 ft. Hit: 19 (2d10+8) piercing damage plus 7 (2d6) fire damage.' },
-      { name: 'Claws', description: '+14 to hit, reach 5 ft. Hit: 15 (2d6+8) slashing damage.' },
-      { name: 'Tail', description: '+14 to hit, reach 15 ft. Hit: 17 (2d8+8) bludgeoning damage.' },
-      { name: 'Frightful Presence', description: 'Each creature of the dragon’s choice within 120 feet must succeed on a DC 19 Wisdom saving throw or be Frightened for 1 minute (repeating the saving throw at the end of each of its turns; after a success, it is immune for 24 hours).' },
-      { name: 'Fire Breath (Recharge 5–6)', description: 'The dragon exhales a sea of flame in a 60-foot cone. Each creature in that area makes a DC 21 Dexterity saving throw, taking 63 (18d6) fire damage on a failed save, or half as much damage on a successful one.' },
+      { name: 'Multiattack', description: 'The dragon makes three Rend attacks. It can replace one of them with Spellcasting.' },
+      { name: 'Rend', description: '+14 to hit, reach 10 ft. Hit: 13 (1d10+8) slashing damage plus 5 (2d4) fire damage.' },
+      { name: 'Fire Breath (Recharge 5–6)', description: 'The dragon exhales a sea of flame in a 60-foot cone. Each creature in that area makes a DC 21 Dexterity saving throw, taking 59 (17d6) fire damage on a failure or half as much on a success.' },
+      { name: 'Spellcasting', description: 'Charisma is the spellcasting ability (spell save DC 20, +12 to hit with spell attacks). At will: Command (level 2 version), Detect Magic, Scorching Ray. 1/day: Fireball.' },
     ],
     legendary: [
-      { name: 'Detect', description: 'The dragon makes a Wisdom (Perception) check. The dragon has 3 legendary actions, taking one after another creature’s turn; it regains them at the start of its turn.' },
-      { name: 'Tail Attack', description: 'The dragon makes one Tail attack.' },
-      { name: 'Wing Attack (Costs 2 Actions)', description: 'Each creature within 10 feet of the dragon makes a DC 22 Dexterity saving throw: on a failure, it takes 15 (2d6+8) bludgeoning damage and is knocked prone. The dragon can then fly up to half its flying speed.' },
+      { name: 'Commanding Presence', description: 'The dragon casts Command (level 2 version). The dragon has 3 legendary actions, usable one at a time after another creature’s turn; it regains them at the start of its turn.' },
+      { name: 'Fiery Rays', description: 'The dragon casts Scorching Ray.' },
+      { name: 'Pounce', description: 'The dragon moves up to half its speed and makes one Rend attack.' },
     ],
   },
 };
