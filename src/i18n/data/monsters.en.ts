@@ -740,7 +740,7 @@ export const MONSTERS_EN: MonstersL10n = {
     name: 'Wyvern',
     type: 'Dragon',
     alignment: 'Unaligned',
-    speed: '20 ft (6 m), fly 80 ft (24 m)',
+    speed: '30 ft (9 m), fly 80 ft (24 m)',
     skills: 'Perception +4',
     senses: 'Darkvision 60 ft, passive Perception 14',
     languages: '—',

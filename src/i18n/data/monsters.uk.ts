@@ -740,7 +740,7 @@ export const MONSTERS_UK: MonstersL10n = {
     name: 'Віверна',
     type: 'Дракон',
     alignment: 'Без світогляду',
-    speed: '6 м (20 фт), політ 24 м (80 фт)',
+    speed: '9 м (30 фт), політ 24 м (80 фт)',
     skills: 'Сприйняття +4',
     senses: 'Темний зір 18 м, пасивне Сприйняття 14',
     languages: '—',
