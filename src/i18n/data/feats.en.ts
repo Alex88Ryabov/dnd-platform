@@ -225,4 +225,76 @@ export const FEATS_EN: FeatsL10n = {
     name: 'Two-Weapon Fighting',
     description: 'Add your ability modifier to the damage of the second attack when fighting with two weapons.',
   },
+  durable: {
+    name: 'Durable',
+    description: '+1 Constitution. Advantage on Death Saving Throws; as a Bonus Action, expend a Hit Point Die and regain the rolled hit points.',
+  },
+  'weapon-master': {
+    name: 'Weapon Master',
+    description: '+1 Strength or Dexterity. Use the mastery property of one kind of Simple or Martial weapon you are proficient with; you can change the kind after a Long Rest.',
+  },
+  'martial-weapon-training': {
+    name: 'Martial Weapon Training',
+    description: '+1 Strength or Dexterity. Proficiency with all Martial weapons.',
+  },
+  'lightly-armored': {
+    name: 'Lightly Armored',
+    description: '+1 Strength or Dexterity. Training with Light armor and Shields.',
+  },
+  'moderately-armored': {
+    name: 'Moderately Armored',
+    description: '+1 Strength or Dexterity. Training with Medium armor. Requires Light Armor Training.',
+  },
+  'heavily-armored': {
+    name: 'Heavily Armored',
+    description: '+1 Strength or Constitution. Training with Heavy armor. Requires Medium Armor Training.',
+  },
+  'shield-master': {
+    name: 'Shield Master',
+    description: '+1 Strength. When you hit with a melee weapon, bash with your Shield: Strength save or the target is pushed 5 feet or knocked Prone (once per turn). As a Reaction with a Shield, take no damage on a successful Dexterity save.',
+  },
+  'mounted-combatant': {
+    name: 'Mounted Combatant',
+    description: '+1 Strength, Dexterity, or Wisdom. While mounted: advantage on attacks against smaller creatures near your mount; your mount takes no damage on a successful Dexterity save; you can take a hit aimed at your mount.',
+  },
+  observant: {
+    name: 'Observant',
+    description: '+1 Intelligence or Wisdom. Proficiency (or Expertise) in Insight, Investigation, or Perception; you can take the Search action as a Bonus Action.',
+  },
+  skulker: {
+    name: 'Skulker',
+    description: '+1 Dexterity. Blindsight 10 feet; advantage on Stealth checks for the Hide action in combat; a missed attack from hiding doesn’t reveal your position.',
+  },
+  poisoner: {
+    name: 'Poisoner',
+    description: '+1 Dexterity or Intelligence. Your Poison damage ignores resistance; proficiency with the Poisoner’s Kit and you can craft doses. As a Bonus Action, coat a weapon: Constitution save or 2d8 Poison damage and the Poisoned condition.',
+  },
+  'ritual-caster': {
+    name: 'Ritual Caster',
+    description: '+1 Intelligence, Wisdom, or Charisma. Level 1 ritual spells (as many as your Proficiency Bonus) are always prepared; once per Long Rest you can cast one at its normal casting time without a spell slot.',
+  },
+  'boon-dimensional-travel': {
+    name: 'Boon of Dimensional Travel',
+    description: '+1 to an ability score (max 30). Right after the Attack or Magic action, teleport up to 30 feet to an unoccupied space you can see.',
+  },
+  'boon-truesight': {
+    name: 'Boon of Truesight',
+    description: '+1 to an ability score (max 30). Truesight within 60 feet.',
+  },
+  'fs-blind-fighting': {
+    name: 'Blind Fighting',
+    description: 'Blindsight within 10 feet: you can see everything in that radius even while Blinded.',
+  },
+  'fs-interception': {
+    name: 'Interception',
+    description: 'As a Reaction, reduce the damage dealt to an ally within 5 feet by 1d10 + your Proficiency Bonus (you must hold a Shield or a weapon).',
+  },
+  'fs-thrown-weapon': {
+    name: 'Thrown Weapon Fighting',
+    description: '+2 to damage rolls when you hit with a Thrown weapon.',
+  },
+  'fs-unarmed': {
+    name: 'Unarmed Fighting',
+    description: 'Your Unarmed Strike deals 1d6 + Strength Bludgeoning damage (1d8 if your hands are free); at the start of your turn, deal 1d4 to a creature you have Grappled.',
+  },
 };

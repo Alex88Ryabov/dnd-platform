@@ -2025,7 +2025,7 @@ export const SPELLS: SpellDef[] = [
     name: 'Послание',
     nameEn: 'Sending',
     level: 3,
-    school: 'evocation',
+    school: 'divination',
     castingTime: 'Действие',
     range: 'Не ограничена',
     components: 'В, С, М (кусочек тонкой медной проволоки)',

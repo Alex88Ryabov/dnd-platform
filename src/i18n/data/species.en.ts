@@ -155,7 +155,7 @@ export const SPECIES_EN: SpeciesL10nMap = {
       { name: 'Bite', description: 'Your jaws make unarmed strikes that deal 1d6 + your Strength modifier piercing damage.' },
       { name: 'Hungry Jaws', description: 'As a Bonus Action, bite in a fury: on a hit, you also gain Temporary Hit Points equal to your Proficiency Bonus. Usable a number of times per day equal to your Proficiency Bonus.' },
       { name: 'Hold Breath', description: 'You can hold your breath for up to 15 minutes, and you have a Swim Speed of 30 feet.' },
-      { name: 'Nature’s Knowledge', description: 'You gain proficiency in two of these skills: Animal Handling, Medicine, Nature, Perception, Stealth, Survival.' },
+      { name: 'Nature’s Knowledge', description: 'You gain proficiency in two of these skills: Animal Handling, Nature, Perception, Stealth, Survival.' },
     ],
   },
   harengon: {
@@ -311,7 +311,7 @@ export const SPECIES_EN: SpeciesL10nMap = {
     description: 'A small draconic folk with a big heart and a loud squeak. Kobolds are strong in packs and in cunning.',
     traits: [
       { name: 'Draconic Cry', description: 'As a Bonus Action, until the start of your next turn: you and your allies have advantage on attacks against enemies within 10 feet of you. Usable a number of times per day equal to your Proficiency Bonus.' },
-      { name: 'Kobold Legacy', description: 'Choose one: proficiency in a skill, advantage on saving throws against the Frightened condition, or one sorcerer cantrip.' },
+      { name: 'Kobold Legacy', description: 'Choose one: proficiency in one of Arcana, Investigation, Medicine, Sleight of Hand, or Survival; advantage on saving throws against the Frightened condition; or one sorcerer cantrip.' },
     ],
   },
   duergar: {
@@ -328,7 +328,7 @@ export const SPECIES_EN: SpeciesL10nMap = {
     description: 'Svirfneblin are the gnomes of the Underdark: unseen gem-miners who know how to melt into the stone.',
     traits: [
       { name: 'Gnomish Cunning', description: 'You have advantage on Intelligence, Wisdom, and Charisma saving throws.' },
-      { name: 'Svirfneblin Camouflage', description: 'You gain proficiency in Stealth, and you have advantage on Stealth checks in rocky terrain.' },
+      { name: 'Svirfneblin Camouflage', description: 'You have advantage on Stealth checks in rocky terrain.' },
       { name: 'Gift of the Svirfneblin', description: 'Starting at 3rd level you can cast Disguise Self, and at 5th, Nondetection on yourself without components — each once per Long Rest.' },
     ],
   },
@@ -396,7 +396,7 @@ export const SPECIES_EN: SpeciesL10nMap = {
     description: 'Distant descendants of lycanthropes. In a moment of danger the beast within steps out: claws, fangs, and wild eyes.',
     traits: [
       { name: 'Shifting', description: 'As a Bonus Action, shift for 1 minute (a number of times per day equal to your Proficiency Bonus): you gain Temporary Hit Points equal to 2 × your Proficiency Bonus, plus your line’s gift: Beasthide — +1 AC and 1d6 extra Temporary Hit Points; Longtooth — a 1d6 bite and, once per shift, healing when you hit; Swiftstride — +10 feet Speed and Disengage as a Bonus Action; Wildhunt — advantage on Wisdom (Perception) checks.' },
-      { name: 'Bestial Instincts', description: 'You gain proficiency in one of these skills: Acrobatics, Athletics, Intimidation, or Perception.' },
+      { name: 'Bestial Instincts', description: 'You gain proficiency in one of these skills: Acrobatics, Athletics, Intimidation, or Survival.' },
     ],
   },
   warforged: {
